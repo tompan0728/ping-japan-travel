@@ -1,0 +1,48 @@
+import type { ShoppingItem } from '../types'
+
+export const shoppingSample: ShoppingItem[] = [
+  {
+    id: 'shop-1',
+    name: '東京限定伴手禮',
+    brand: '東京站購物區',
+    area: '丸之內',
+    preferredStore: '東京車站購物街',
+    budget: 4000,
+    actualPrice: 0,
+    status: '待購買',
+    notes: '買給家人與同事的伴手禮。',
+  },
+  {
+    id: 'shop-2',
+    name: '小型相機配件',
+    brand: 'B&H 旅遊倉',
+    area: '澀谷',
+    preferredStore: '表參道小店',
+    budget: 6000,
+    actualPrice: 5800,
+    status: '已購買',
+    notes: '記憶卡和小型清潔布。',
+  },
+  {
+    id: 'shop-3',
+    name: '東京周邊紀念品',
+    brand: '淺草日用品店',
+    area: '淺草',
+    preferredStore: '仲見世商店街',
+    budget: 3000,
+    actualPrice: 0,
+    status: '待購買',
+    notes: '最愛日式小物。',
+  },
+  {
+    id: 'shop-4',
+    name: '保養品',
+    brand: 'COSME',
+    area: '新宿',
+    preferredStore: '新宿大型藥妝店',
+    budget: 5000,
+    actualPrice: 0,
+    status: '待購買',
+    notes: '可先比價後再購買。',
+  },
+]

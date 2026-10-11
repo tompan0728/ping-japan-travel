@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f6d9d4"/>
+      <stop offset="100%" stop-color="#d74d4d"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  <circle cx="256" cy="200" r="120" fill="#fff7f3" opacity="0.85"/>
+  <path d="M178 332c30-58 66-87 110-87 51 0 88 29 120 87" fill="none" stroke="#fff7f3" stroke-width="28" stroke-linecap="round"/>
+  <text x="256" y="440" text-anchor="middle" font-size="86" font-family="Segoe UI, Noto Sans TC, sans-serif" font-weight="700" fill="#fff7f3">東</text>
+</svg>

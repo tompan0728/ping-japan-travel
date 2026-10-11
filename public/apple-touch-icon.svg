@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f8d9d2"/>
+      <stop offset="100%" stop-color="#d74d4d"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="42" fill="url(#bg)"/>
+  <text x="90" y="118" text-anchor="middle" font-size="72" font-family="Segoe UI, Noto Sans TC, sans-serif" font-weight="700" fill="#fff8f5">東</text>
+</svg>

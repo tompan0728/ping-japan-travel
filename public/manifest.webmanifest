@@ -1,0 +1,40 @@
+{
+  "name": "東京自由行",
+  "short_name": "Tokyo Travel",
+  "description": "東京旅行規劃與行程管理 App 公版",
+  "lang": "zh-Hant",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#f5f0ea",
+  "theme_color": "#d74d4d",
+  "orientation": "portrait",
+  "categories": ["travel", "lifestyle"],
+  "icons": [
+    {
+      "src": "/photo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

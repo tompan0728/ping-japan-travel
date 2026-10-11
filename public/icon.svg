@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="Tokyo travel app icon">
+  <rect width="192" height="192" rx="40" fill="#f5f0ea"/>
+  <circle cx="96" cy="96" r="74" fill="#d74d4d" opacity="0.96"/>
+  <path d="M60 108h72c6 0 10-4 10-10s-4-10-10-10H60c-6 0-10 4-10 10s4 10 10 10Zm26-38h20v22H86Zm-26 50h72v12H60Zm18-54h36v16H78Z" fill="#fff8f8"/>
+  <path d="M96 48c-16 0-32 12-38 28 13-9 26-13 38-13s25 4 38 13c-6-16-22-28-38-28Z" fill="#fff2d9" opacity="0.9"/>
+  <circle cx="92" cy="88" r="8" fill="#fff"/>
+  <circle cx="104" cy="88" r="8" fill="#fff"/>
+</svg>
