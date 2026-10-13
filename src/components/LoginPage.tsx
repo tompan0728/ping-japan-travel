@@ -37,35 +37,35 @@ export function LoginPage({ onCancel }: LoginPageProps) {
   }
 
   return (
-    <section className="w-full max-w-md rounded-[28px] border border-[#eadfd8] bg-[#fffdfa] p-5 text-slate-800 shadow-[0_18px_45px_rgba(90,67,53,0.08)]">
+    <section className="w-full max-w-md rounded-[28px] border border-[#c7dce8] bg-[#fbfdff] p-5 text-slate-800 shadow-[0_18px_45px_rgba(28,74,105,0.10)]">
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#fff0ef] text-[#b23b3b]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#eaf5fb] text-[#15577f]">
             <LockKeyhole size={22} />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-[#1f2937]">管理者登入</h2>
-            <p className="text-sm text-[#6b7280]">旅伴不用登入，只有編輯行程需要管理者帳號。</p>
+            <h2 className="text-xl font-semibold text-[#173b59]">管理者登入</h2>
+            <p className="text-sm text-[#60798b]">旅伴不用登入，只有編輯行程需要管理者帳號。</p>
           </div>
         </div>
         {onCancel && (
-          <button type="button" onClick={onCancel} className="rounded-full bg-[#f9f3f1] p-2 text-[#4b5563]">
+          <button type="button" onClick={onCancel} className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]">
             <X size={16} />
           </button>
         )}
       </div>
 
       {!isSupabaseConfigured ? (
-        <div className="rounded-2xl bg-[#fff3f1] p-4 text-sm leading-6 text-[#8f3c32]">
+        <div className="rounded-2xl bg-[#fff1df] p-4 text-sm leading-6 text-[#995522]">
           尚未設定 Supabase。請先建立 `.env.local`，填入 `VITE_SUPABASE_URL` 和
           `VITE_SUPABASE_ANON_KEY`。
         </div>
       ) : (
         <form className="space-y-4" onSubmit={handleSubmit}>
           <label className="block">
-            <span className="mb-1.5 block text-xs font-medium text-[#7a6a62]">Email</span>
-            <span className="flex h-12 items-center gap-2 rounded-2xl border border-[#eddfdb] bg-[#fffaf8] px-3">
-              <Mail size={18} className="text-[#9b8b83]" />
+            <span className="mb-1.5 block text-xs font-medium text-[#587286]">Email</span>
+            <span className="flex h-12 items-center gap-2 rounded-2xl border border-[#cbdfe9] bg-[#f4f9fc] px-3">
+              <Mail size={18} className="text-[#8199a9]" />
               <input
                 type="email"
                 value={email}
@@ -78,9 +78,9 @@ export function LoginPage({ onCancel }: LoginPageProps) {
           </label>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-medium text-[#7a6a62]">密碼</span>
-            <span className="flex h-12 items-center gap-2 rounded-2xl border border-[#eddfdb] bg-[#fffaf8] px-3">
-              <KeyRound size={18} className="text-[#9b8b83]" />
+            <span className="mb-1.5 block text-xs font-medium text-[#587286]">密碼</span>
+            <span className="flex h-12 items-center gap-2 rounded-2xl border border-[#cbdfe9] bg-[#f4f9fc] px-3">
+              <KeyRound size={18} className="text-[#8199a9]" />
               <input
                 type="password"
                 value={password}
@@ -94,7 +94,7 @@ export function LoginPage({ onCancel }: LoginPageProps) {
           </label>
 
           {message && (
-            <div className="rounded-2xl bg-[#f7f2ee] px-3 py-2 text-sm text-[#5f6b7a]">
+            <div className="rounded-2xl bg-[#edf5f8] px-3 py-2 text-sm text-[#526f85]">
               {message}
             </div>
           )}
@@ -102,7 +102,7 @@ export function LoginPage({ onCancel }: LoginPageProps) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#d74d4d] px-4 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#176fa5] px-4 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-70"
           >
             <LogIn size={18} />
             {isSubmitting ? '登入中...' : '登入管理者'}
@@ -112,7 +112,7 @@ export function LoginPage({ onCancel }: LoginPageProps) {
             <button
               type="button"
               onClick={onCancel}
-              className="w-full rounded-2xl border border-[#eadfd8] px-4 py-3 text-sm font-medium text-[#524743]"
+              className="w-full rounded-2xl border border-[#c7dce8] px-4 py-3 text-sm font-medium text-[#28475d]"
             >
               返回觀看模式
             </button>
@@ -122,4 +122,3 @@ export function LoginPage({ onCancel }: LoginPageProps) {
     </section>
   )
 }
-

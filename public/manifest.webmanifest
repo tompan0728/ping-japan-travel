@@ -7,8 +7,8 @@
   "scope": "/",
   "id": "/",
   "display": "standalone",
-  "background_color": "#f5f0ea",
-  "theme_color": "#d74d4d",
+  "background_color": "#eaf4f8",
+  "theme_color": "#176fa5",
   "orientation": "portrait",
   "categories": ["travel", "lifestyle"],
   "icons": [
@@ -29,7 +29,7 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    }
+    },
     {
       "src": "/icon.svg",
       "sizes": "any",

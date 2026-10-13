@@ -656,9 +656,9 @@ function App() {
 
   if (isSupabaseConfigured && isAuthLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f0ea] text-[#4b5563]">
-        <div className="flex items-center gap-3 rounded-[24px] bg-[#fffdfa] px-5 py-4 shadow-sm ring-1 ring-[#eadfd8]">
-          <Loader2 size={20} className="animate-spin text-[#d74d4d]" />
+      <div className="flex min-h-screen items-center justify-center bg-[#eaf4f8] text-[#3e586d]">
+        <div className="flex items-center gap-3 rounded-[24px] bg-[#fbfdff] px-5 py-4 shadow-sm ring-1 ring-[#c7dce8]">
+          <Loader2 size={20} className="animate-spin text-[#176fa5]" />
           <span className="text-sm font-medium">正在確認登入狀態</span>
         </div>
       </div>
@@ -667,9 +667,9 @@ function App() {
 
   if (isSupabaseConfigured && isDataLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f0ea] text-[#4b5563]">
-        <div className="flex items-center gap-3 rounded-[24px] bg-[#fffdfa] px-5 py-4 shadow-sm ring-1 ring-[#eadfd8]">
-          <Loader2 size={20} className="animate-spin text-[#d74d4d]" />
+      <div className="flex min-h-screen items-center justify-center bg-[#eaf4f8] text-[#3e586d]">
+        <div className="flex items-center gap-3 rounded-[24px] bg-[#fbfdff] px-5 py-4 shadow-sm ring-1 ring-[#c7dce8]">
+          <Loader2 size={20} className="animate-spin text-[#176fa5]" />
           <span className="text-sm font-medium">正在載入旅遊資料</span>
         </div>
       </div>
@@ -677,9 +677,9 @@ function App() {
   }
 
   return (
-    <div className="app-shell min-h-screen bg-[#f5f0ea] text-slate-800">
+    <div className="app-shell min-h-screen bg-[#eaf4f8] text-slate-800">
       <div className="mx-auto flex max-w-7xl gap-4 p-3 sm:p-5">
-        <aside className="hidden w-72 shrink-0 rounded-[28px] border border-[#eadfd8] bg-[#fffdfa] p-5 shadow-[0_18px_45px_rgba(90,67,53,0.08)] lg:flex lg:flex-col">
+        <aside className="hidden w-72 shrink-0 rounded-[28px] border border-[#c7dce8] bg-[#fbfdff] p-5 shadow-[0_18px_45px_rgba(28,74,105,0.10)] lg:flex lg:flex-col">
           <div
             className="mb-8 flex items-center gap-3"
             onDoubleClick={() => {
@@ -687,12 +687,12 @@ function App() {
             }}
             title={isSupabaseConfigured ? '登入帳號' : '管理者入口'}
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d74d4d] text-lg font-bold text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#176fa5] text-lg font-bold text-white">
               T
             </div>
             <div>
-              <div className="text-lg font-semibold text-[#1f2937]">{appData.trip.tripName}</div>
-              <div className="text-xs text-[#7a6a62]">{appData.trip.subtitle}</div>
+              <div className="text-lg font-semibold text-[#173b59]">{appData.trip.tripName}</div>
+              <div className="text-xs text-[#587286]">{appData.trip.subtitle}</div>
             </div>
           </div>
 
@@ -704,8 +704,8 @@ function App() {
                 onClick={() => setActivePage(key)}
                 className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
                   activePage === key
-                    ? 'bg-[#fdf0ee] text-[#b23b3b] shadow-sm'
-                    : 'text-[#4b5563] hover:bg-[#f8f3ee]'
+                    ? 'bg-[#e4f1f8] text-[#15577f] shadow-sm'
+                    : 'text-[#3e586d] hover:bg-[#edf5f8]'
                 }`}
               >
                 <span className="flex items-center gap-3">
@@ -722,7 +722,7 @@ function App() {
               <button
                 type="button"
                 onClick={handleInstallApp}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#d9b8a2] bg-[#fff8f2] px-4 py-3 text-sm font-medium text-[#a15d40]"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#b7d6e5] bg-[#fff1df] px-4 py-3 text-sm font-medium text-[#b96624]"
               >
                 <Sparkles size={16} />
                 安裝到主畫面
@@ -730,36 +730,16 @@ function App() {
             )}
           </div>
 
-          <div className="mt-auto rounded-[22px] bg-[#faf3ef] p-4 text-sm text-[#4b5563]">
-            <div className="mb-2 flex items-center gap-2 text-[#b23b3b]">
-              <Sparkles size={16} />
-              <span className="font-semibold">旅遊概覽</span>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span>行程天數</span>
-                <span>{appData.trip.durationDays} 天</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>旅伴</span>
-                <span>{appData.trip.travelers} 人</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>飯店</span>
-                <span className="max-w-[120px] truncate">{appData.trip.hotelName}</span>
-              </div>
-            </div>
-          </div>
         </aside>
 
         <main className="flex-1 pb-24 lg:pb-0">
           {isSupabaseConfigured && (
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[#eadfd8] bg-[#fffdfa] px-4 py-3 text-sm text-[#4b5563] shadow-sm">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[#c7dce8] bg-[#fbfdff] px-4 py-3 text-sm text-[#3e586d] shadow-sm">
               <div className="flex min-w-0 items-center gap-2">
-                <Database size={17} className="shrink-0 text-[#d74d4d]" />
+                <Database size={17} className="shrink-0 text-[#176fa5]" />
                 <span className="truncate">{syncMessage}</span>
               </div>
-              <div className="flex items-center gap-2 rounded-full bg-[#f7f2ee] px-3 py-1 text-xs font-medium text-[#6b5d56]">
+              <div className="flex items-center gap-2 rounded-full bg-[#edf5f8] px-3 py-1 text-xs font-medium text-[#5b7182]">
                 <ShieldCheck size={14} />
                 {canEdit ? '管理者可編輯' : '觀看者唯讀'}
               </div>
@@ -768,9 +748,9 @@ function App() {
 
           {activePage === 'home' && (
             <div className="space-y-4">
-              <section className="rounded-[30px] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.9),_rgba(245,220,216,0.8))] p-5 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-6">
+              <section className="rounded-[30px] bg-[linear-gradient(120deg,#fff0f5_0%,#ffe0df_48%,#ffd59a_100%)] p-5 shadow-[0_18px_35px_rgba(28,74,105,0.10)] sm:p-6">
                 <div className="mb-4 flex items-center justify-between gap-2">
-                  <div className="inline-flex items-center rounded-full bg-[#fff0ef] px-3 py-1 text-xs font-medium text-[#be4a41]">
+                  <div className="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 py-1 text-xs font-medium text-[#e78331]">
                     <Sparkles size={14} className="mr-1" />
                     {appData.trip.tripName}
                   </div>
@@ -782,7 +762,7 @@ function App() {
                           setTripDraft(appData.trip)
                           setIsTripEditorOpen(true)
                         }}
-                        className="inline-flex items-center gap-2 rounded-full border border-[#ead7d0] bg-white/60 px-3 py-1.5 text-xs font-medium text-[#524743]"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#c7dce8] bg-white/60 px-3 py-1.5 text-xs font-medium text-[#28475d]"
                       >
                         <Sparkles size={14} />
                         直接修改
@@ -790,7 +770,7 @@ function App() {
                       <button
                         type="button"
                         onClick={restoreSampleData}
-                        className="inline-flex items-center gap-2 rounded-full border border-[#ead7d0] bg-white/60 px-3 py-1.5 text-xs font-medium text-[#524743]"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#c7dce8] bg-white/60 px-3 py-1.5 text-xs font-medium text-[#28475d]"
                       >
                         <RefreshCcw size={14} />
                         還原範例資料
@@ -798,7 +778,7 @@ function App() {
                       <button
                         type="button"
                         onClick={isSupabaseConfigured ? handleSignOut : exitOwnerAccess}
-                        className="inline-flex items-center gap-2 rounded-full border border-[#ead7d0] bg-white/60 px-3 py-1.5 text-xs font-medium text-[#524743]"
+                        className="inline-flex items-center gap-2 rounded-full border border-[#c7dce8] bg-white/60 px-3 py-1.5 text-xs font-medium text-[#28475d]"
                       >
                         {isSupabaseConfigured ? <LogOut size={14} /> : <RefreshCcw size={14} />}
                         {isSupabaseConfigured ? '登出' : '退出管理者'}
@@ -809,10 +789,10 @@ function App() {
 
                 <div className="grid gap-4 lg:grid-cols-[1.5fr_0.9fr]">
                   <div>
-                    <h1 className="text-3xl font-semibold tracking-tight text-[#1f2937] sm:text-4xl">
+                    <h1 className="text-3xl font-semibold tracking-tight text-[#173b59] sm:text-4xl">
                       {appData.trip.tripName}
                     </h1>
-                    <p className="mt-1 text-sm text-[#6b7280]">{appData.trip.subtitle}</p>
+                    <p className="mt-1 text-sm text-[#60798b]">{appData.trip.subtitle}</p>
 
                     <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                       {[
@@ -821,26 +801,26 @@ function App() {
                         { label: '旅伴人數', value: `${appData.trip.travelers} 人` },
                         { label: '今日日期', value: todayLabel },
                       ].map((info) => (
-                        <div key={info.label} className="rounded-2xl bg-white/70 p-3 shadow-sm ring-1 ring-[#f1e6df]">
-                          <div className="text-[11px] uppercase tracking-[0.08em] text-[#8d7e76]">{info.label}</div>
-                          <div className="mt-2 text-sm font-semibold text-[#1f2937]">{info.value}</div>
+                        <div key={info.label} className="rounded-2xl bg-white/70 p-3 shadow-sm ring-1 ring-[#dceaf1]">
+                          <div className="text-[11px] uppercase tracking-[0.08em] text-[#6f8798]">{info.label}</div>
+                          <div className="mt-2 text-sm font-semibold text-[#173b59]">{info.value}</div>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <div className="rounded-[24px] bg-[#fffefc] p-4 shadow-sm ring-1 ring-[#f0e7e2]">
+                  <div className="rounded-[24px] bg-[#fbfdff] p-4 shadow-sm ring-1 ring-[#dceaf1]">
                     <div className="flex items-center justify-between">
-                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-[#886d64]">入住資訊</div>
-                      <Hotel size={18} className="text-[#d74d4d]" />
+                      <div className="text-xs font-medium uppercase tracking-[0.12em] text-[#668093]">入住資訊</div>
+                      <Hotel size={18} className="text-[#176fa5]" />
                     </div>
-                    <div className="mt-4 space-y-3 text-sm text-[#374151]">
+                    <div className="mt-4 space-y-3 text-sm text-[#284b63]">
                       <div>
-                        <div className="text-[11px] uppercase tracking-[0.08em] text-[#8d7e76]">飯店</div>
-                        <div className="mt-1 font-semibold text-[#1f2937]">{appData.trip.hotelName}</div>
+                        <div className="text-[11px] uppercase tracking-[0.08em] text-[#6f8798]">飯店</div>
+                        <div className="mt-1 font-semibold text-[#173b59]">{appData.trip.hotelName}</div>
                       </div>
                       <div>
-                        <div className="text-[11px] uppercase tracking-[0.08em] text-[#8d7e76]">地址</div>
+                        <div className="text-[11px] uppercase tracking-[0.08em] text-[#6f8798]">地址</div>
                         <div className="mt-1">{appData.trip.hotelAddress}</div>
                       </div>
                     </div>
@@ -849,16 +829,16 @@ function App() {
               </section>
 
               <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-                <div className="rounded-[28px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_16px_30px_rgba(83,62,52,0.06)] sm:p-5">
+                <div className="rounded-[28px] border border-[#c7dce8] bg-[#fbfdff] p-4 shadow-[0_16px_30px_rgba(28,74,105,0.08)] sm:p-5">
                   <div className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[#1f2937]">
-                      <CalendarDays size={18} className="text-[#d74d4d]" />
+                    <div className="flex items-center gap-2 text-[#173b59]">
+                      <CalendarDays size={18} className="text-[#176fa5]" />
                       <span className="font-semibold">今日行程摘要</span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setActivePage('itinerary')}
-                      className="rounded-full bg-[#fff3f1] px-3 py-1.5 text-xs font-medium text-[#b23b3b]"
+                      className="rounded-full bg-[#eaf5fb] px-3 py-1.5 text-xs font-medium text-[#15577f]"
                     >
                       查看行程
                     </button>
@@ -866,15 +846,15 @@ function App() {
 
                   {selectedDay ? (
                     <div className="space-y-3">
-                      <div className="rounded-2xl bg-[#f8f2ee] p-3">
-                        <div className="text-[11px] uppercase tracking-[0.1em] text-[#8b7a73]">當前旅遊日</div>
-                        <div className="mt-1 text-lg font-semibold text-[#1f2937]">{selectedDay.label}</div>
+                      <div className="rounded-2xl bg-[#eaf3f8] p-3">
+                        <div className="text-[11px] uppercase tracking-[0.1em] text-[#668093]">當前旅遊日</div>
+                        <div className="mt-1 text-lg font-semibold text-[#173b59]">{selectedDay.label}</div>
                       </div>
                         {selectedDay.items.slice(0, 3).map((item) => (
-                          <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl border border-[#f0e4df] bg-white p-3">
+                          <div key={item.id} className="flex items-center justify-between gap-3 rounded-2xl border border-[#dceaf1] bg-white p-3">
                             <div>
-                              <div className="text-sm font-semibold text-[#1f2937]">{item.title}</div>
-                              <div className="mt-1 text-xs text-[#6b7280]">{item.startTime} · {item.category}</div>
+                              <div className="text-sm font-semibold text-[#173b59]">{item.title}</div>
+                              <div className="mt-1 text-xs text-[#60798b]">{item.startTime} · {item.category}</div>
                             </div>
                             <button
                               type="button"
@@ -882,7 +862,7 @@ function App() {
                               className={`inline-flex h-8 w-8 items-center justify-center rounded-full border ${
                                 item.completed
                                   ? 'border-[#cfe8d3] bg-[#effaf1] text-[#3d8d57]'
-                                  : 'border-[#f0d7d2] bg-[#fffaf7] text-[#9aa0a6]'
+                                  : 'border-[#c8dfec] bg-[#f4f9fc] text-[#9aa0a6]'
                               }`}
                             >
                               <Check size={16} />
@@ -893,39 +873,39 @@ function App() {
                   ) : null}
                 </div>
 
-                <div className="rounded-[28px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_16px_30px_rgba(83,62,52,0.06)] sm:p-5">
+                <div className="rounded-[28px] border border-[#c7dce8] bg-[#fbfdff] p-4 shadow-[0_16px_30px_rgba(28,74,105,0.08)] sm:p-5">
                   <div className="mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[#1f2937]">
-                      <Clock3 size={18} className="text-[#d74d4d]" />
+                    <div className="flex items-center gap-2 text-[#173b59]">
+                      <Clock3 size={18} className="text-[#176fa5]" />
                       <span className="font-semibold">下一個行程</span>
                     </div>
                   </div>
 
                   {nextItem ? (
-                    <div className="rounded-2xl bg-[#fffaf8] p-4 ring-1 ring-[#f3e0d6]">
-                      <div className="text-[11px] uppercase tracking-[0.12em] text-[#8d7e76]">{nextItem.category}</div>
-                      <h3 className="mt-2 text-lg font-semibold text-[#1f2937]">{nextItem.title}</h3>
-                      <div className="mt-2 text-sm text-[#4b5563]">{nextItem.startTime} · {nextItem.address}</div>
+                    <div className="rounded-2xl bg-[#f4f9fc] p-4 ring-1 ring-[#dceaf1]">
+                      <div className="text-[11px] uppercase tracking-[0.12em] text-[#6f8798]">{nextItem.category}</div>
+                      <h3 className="mt-2 text-lg font-semibold text-[#173b59]">{nextItem.title}</h3>
+                      <div className="mt-2 text-sm text-[#3e586d]">{nextItem.startTime} · {nextItem.address}</div>
                       <a
                         href={nextItem.link || googleMapsLink(nextItem.address)}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#d74d4d] px-3 py-2 text-xs font-medium text-white"
+                        className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#176fa5] px-3 py-2 text-xs font-medium text-white"
                       >
                         Google Maps
                         <ChevronRight size={14} />
                       </a>
                     </div>
                   ) : (
-                    <p className="text-sm text-[#6b7280]">目前尚未安排行程。</p>
+                    <p className="text-sm text-[#60798b]">目前尚未安排行程。</p>
                   )}
                 </div>
               </section>
 
-              <section className="rounded-[28px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_16px_30px_rgba(83,62,52,0.06)] sm:p-5">
+              <section className="rounded-[28px] border border-[#c7dce8] bg-[#fbfdff] p-4 shadow-[0_16px_30px_rgba(28,74,105,0.08)] sm:p-5">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[#1f2937]">
-                    <Star size={18} className="text-[#d74d4d]" />
+                  <div className="flex items-center gap-2 text-[#173b59]">
+                    <Star size={18} className="text-[#176fa5]" />
                     <span className="font-semibold">常用功能入口</span>
                   </div>
                 </div>
@@ -941,7 +921,7 @@ function App() {
                       key={key}
                       type="button"
                       onClick={() => setActivePage(key as PageKey)}
-                      className="rounded-2xl border border-[#f2e3df] bg-[#faf7f4] px-4 py-3 text-left text-sm font-medium text-[#1f2937] transition hover:bg-[#fff3f0]"
+                      className="rounded-2xl border border-[#dceaf1] bg-[#eef6f9] px-4 py-3 text-left text-sm font-medium text-[#173b59] transition hover:bg-[#eaf5fb]"
                     >
                       {label}
                     </button>
@@ -953,11 +933,11 @@ function App() {
 
           {activePage === 'itinerary' && (
             <div className="space-y-4">
-              <section className="rounded-[30px] border border-[#efdfd8] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
+              <section className="rounded-[30px] border border-[#c7dce8] bg-[#fbfdff] p-4 shadow-[0_18px_35px_rgba(28,74,105,0.10)] sm:p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#85736d]">每日行程</div>
-                    <h2 className="text-2xl font-semibold text-[#1f2937]">Itinerary</h2>
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#658093]">每日行程</div>
+                    <h2 className="text-2xl font-semibold text-[#173b59]">Itinerary</h2>
                   </div>
                   {canEdit && (
                     <button
@@ -968,7 +948,7 @@ function App() {
                           id: createId(),
                         })
                       }}
-                      className="inline-flex items-center gap-2 rounded-full bg-[#d74d4d] px-3 py-2 text-sm font-medium text-white"
+                      className="inline-flex items-center gap-2 rounded-full bg-[#176fa5] px-3 py-2 text-sm font-medium text-white"
                     >
                       <Plus size={16} />
                       新增行程
@@ -984,8 +964,8 @@ function App() {
                       onClick={() => setSelectedDayIndex(index)}
                       className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium ${
                         selectedDayIndex === index
-                          ? 'bg-[#d74d4d] text-white'
-                          : 'bg-[#f7f1ee] text-[#4b5563]'
+                          ? 'bg-[#176fa5] text-white'
+                          : 'bg-[#edf5f8] text-[#3e586d]'
                       }`}
                     >
                       {day.label}
@@ -999,8 +979,8 @@ function App() {
                       key={item.id}
                       className={`rounded-[24px] border p-3 shadow-sm transition ${
                         expandedItemId === item.id
-                          ? 'border-[#f1d7d0] bg-[#fffaf8]'
-                          : 'border-[#f1e6df] bg-white'
+                          ? 'border-[#c8dfec] bg-[#f4f9fc]'
+                          : 'border-[#dceaf1] bg-white'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -1014,13 +994,13 @@ function App() {
                               type="checkbox"
                               checked={item.completed}
                               onChange={() => toggleItineraryComplete(item.id)}
-                              className="mt-1 h-4 w-4 accent-[#d74d4d]"
+                              className="mt-1 h-4 w-4 accent-[#176fa5]"
                               aria-label={`標記${item.title}已完成`}
                             />
                           )}
                           <div>
-                            <div className="text-sm font-semibold text-[#1f2937]">{item.title}</div>
-                            <div className="mt-1 text-xs text-[#6b7280]">
+                            <div className="text-sm font-semibold text-[#173b59]">{item.title}</div>
+                            <div className="mt-1 text-xs text-[#60798b]">
                               {item.startTime} · {item.category} · {item.duration}
                             </div>
                           </div>
@@ -1028,15 +1008,15 @@ function App() {
 
                         {canEdit && (
                           <div className="flex items-center gap-2">
-                            <button type="button" onClick={() => moveItineraryItem(item.id, 'up')} className="rounded-full border border-[#eed9d5] p-2 text-[#4b5563]" aria-label="上移"><ArrowUp size={14} /></button>
-                            <button type="button" onClick={() => moveItineraryItem(item.id, 'down')} className="rounded-full border border-[#eed9d5] p-2 text-[#4b5563]" aria-label="下移"><ArrowDown size={14} /></button>
+                            <button type="button" onClick={() => moveItineraryItem(item.id, 'up')} className="rounded-full border border-[#c7dce8] p-2 text-[#3e586d]" aria-label="上移"><ArrowUp size={14} /></button>
+                            <button type="button" onClick={() => moveItineraryItem(item.id, 'down')} className="rounded-full border border-[#c7dce8] p-2 text-[#3e586d]" aria-label="下移"><ArrowDown size={14} /></button>
                             <button
                               type="button"
                               onClick={() => {
                                 setItineraryDraft(item)
                                 setExpandedItemId(item.id)
                               }}
-                              className="rounded-full bg-[#fff1ee] p-2 text-[#b23b3b]"
+                              className="rounded-full bg-[#eaf5fb] p-2 text-[#15577f]"
                               aria-label="編輯行程"
                             >
                               <Sparkles size={14} />
@@ -1044,7 +1024,7 @@ function App() {
                             <button
                               type="button"
                               onClick={() => removeItineraryItem(item.id)}
-                              className="rounded-full bg-[#fff1ee] p-2 text-[#b23b3b]"
+                              className="rounded-full bg-[#eaf5fb] p-2 text-[#15577f]"
                               aria-label="刪除行程"
                             >
                               <Trash2 size={14} />
@@ -1054,12 +1034,12 @@ function App() {
                       </div>
 
                       {expandedItemId === item.id && (
-                        <div className="mt-3 rounded-2xl bg-[#faf6f3] p-3 text-sm text-[#4b5563]">
+                        <div className="mt-3 rounded-2xl bg-[#eef5f8] p-3 text-sm text-[#3e586d]">
                           <div className="grid gap-2 sm:grid-cols-2">
-                            <div><span className="font-medium text-[#374151]">地址：</span>{item.address}</div>
-                            <div><span className="font-medium text-[#374151]">交通：</span>{item.transport}</div>
-                            <div><span className="font-medium text-[#374151]">備註：</span>{item.notes}</div>
-                            <div><span className="font-medium text-[#374151]">導航：</span><a href={item.link || googleMapsLink(item.address)} target="_blank" rel="noreferrer" className="text-[#b23b3b] underline">Google Maps</a></div>
+                            <div><span className="font-medium text-[#284b63]">地址：</span>{item.address}</div>
+                            <div><span className="font-medium text-[#284b63]">交通：</span>{item.transport}</div>
+                            <div><span className="font-medium text-[#284b63]">備註：</span>{item.notes}</div>
+                            <div><span className="font-medium text-[#284b63]">導航：</span><a href={item.link || googleMapsLink(item.address)} target="_blank" rel="noreferrer" className="text-[#15577f] underline">Google Maps</a></div>
                           </div>
                         </div>
                       )}
@@ -1071,7 +1051,7 @@ function App() {
           )}
 
           {activePage === 'info' && (
-            <div className="mb-4 flex flex-wrap gap-2 rounded-[24px] border border-[#eadfd8] bg-[#fffdfa] p-2 shadow-sm">
+            <div className="mb-4 flex flex-wrap gap-2 rounded-[24px] border border-[#c7dce8] bg-[#fbfdff] p-2 shadow-sm">
               {(['旅遊資訊', '美食', '購物'] as const).map((category) => (
                 <button
                   key={category}
@@ -1079,8 +1059,8 @@ function App() {
                   onClick={() => setInfoCategory(category)}
                   className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                     infoCategory === category
-                      ? 'bg-[#d74d4d] text-white'
-                      : 'bg-[#f7f1ee] text-[#4b5563] hover:bg-[#fff0ed]'
+                      ? 'bg-[#176fa5] text-white'
+                      : 'bg-[#edf5f8] text-[#3e586d] hover:bg-[#e5f3f9]'
                   }`}
                 >
                   {category}
@@ -1093,17 +1073,17 @@ function App() {
 
           {activePage === 'info' && infoCategory === '購物' && (
             <div className="space-y-4">
-              <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
+              <section className="rounded-[30px] border border-[#c7dce8] bg-[#fbfdff] p-4 shadow-[0_18px_35px_rgba(28,74,105,0.10)] sm:p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#85736d]">購物目標</div>
-                    <h2 className="text-2xl font-semibold text-[#1f2937]">Shopping</h2>
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#658093]">購物目標</div>
+                    <h2 className="text-2xl font-semibold text-[#173b59]">Shopping</h2>
                   </div>
                   {canEdit && (
                     <button
                       type="button"
                       onClick={() => setShoppingDraft({ ...emptyShoppingItem(), id: createId() })}
-                      className="inline-flex items-center gap-2 rounded-full bg-[#d74d4d] px-3 py-2 text-sm font-medium text-white"
+                      className="inline-flex items-center gap-2 rounded-full bg-[#176fa5] px-3 py-2 text-sm font-medium text-white"
                     >
                       <Plus size={16} />
                       新增項目
@@ -1119,8 +1099,8 @@ function App() {
                       onClick={() => setShoppingStatusFilter(status as '全部' | '待購買' | '已購買')}
                       className={`rounded-full px-3 py-1.5 text-sm ${
                         shoppingStatusFilter === status
-                          ? 'bg-[#d74d4d] text-white'
-                          : 'bg-[#f7f1ee] text-[#4b5563]'
+                          ? 'bg-[#176fa5] text-white'
+                          : 'bg-[#edf5f8] text-[#3e586d]'
                       }`}
                     >
                       {status}
@@ -1129,7 +1109,7 @@ function App() {
                   <select
                     value={shoppingRegionFilter}
                     onChange={(event) => setShoppingRegionFilter(event.target.value)}
-                    className="rounded-full border border-[#eeded8] bg-[#fffaf8] px-3 py-1.5 text-sm text-[#374151] outline-none"
+                    className="rounded-full border border-[#cbdfe9] bg-[#f4f9fc] px-3 py-1.5 text-sm text-[#284b63] outline-none"
                   >
                     <option value="全部">全部區域</option>
                     {Array.from(new Set(appData.shoppingItems.map((item) => item.area))).map((area) => (
@@ -1145,21 +1125,21 @@ function App() {
                       (shoppingRegionFilter === '全部' || item.area === shoppingRegionFilter),
                     )
                     .map((item) => (
-                      <div key={item.id} className="rounded-[24px] border border-[#f0e6df] bg-white p-3 shadow-sm">
+                      <div key={item.id} className="rounded-[24px] border border-[#dceaf1] bg-white p-3 shadow-sm">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <div className="text-base font-semibold text-[#1f2937]">{item.name}</div>
-                            <div className="mt-1 text-xs text-[#6b7280]">{item.brand} · {item.area}</div>
+                            <div className="text-base font-semibold text-[#173b59]">{item.name}</div>
+                            <div className="mt-1 text-xs text-[#60798b]">{item.brand} · {item.area}</div>
                           </div>
                           <div className={`rounded-full px-2 py-1 text-[10px] font-medium ${
                             item.status === '已購買'
                               ? 'bg-[#eaf7ee] text-[#3a8f5d]'
-                              : 'bg-[#fff0ee] text-[#b74b4b]'
+                              : 'bg-[#e8f4fa] text-[#15577f]'
                           }`}>
                             {item.status}
                           </div>
                         </div>
-                        <div className="mt-3 grid gap-2 text-sm text-[#374151] sm:grid-cols-2">
+                        <div className="mt-3 grid gap-2 text-sm text-[#284b63] sm:grid-cols-2">
                           <div>預算：{formatYen(item.budget)}</div>
                           <div>實際：{formatYen(item.actualPrice)}</div>
                           <div>店家：{item.preferredStore}</div>
@@ -1167,8 +1147,8 @@ function App() {
                         </div>
                         {canEdit && (
                           <div className="mt-3 flex gap-2">
-                            <button type="button" onClick={() => setShoppingDraft(item)} className="rounded-full bg-[#fff3f1] px-3 py-1.5 text-xs font-medium text-[#b23b3b]">編輯</button>
-                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, shoppingItems: previous.shoppingItems.filter((entry) => entry.id !== item.id) }))} className="rounded-full border border-[#f0d9d3] px-3 py-1.5 text-xs font-medium text-[#4b5563]">刪除</button>
+                            <button type="button" onClick={() => setShoppingDraft(item)} className="rounded-full bg-[#eaf5fb] px-3 py-1.5 text-xs font-medium text-[#15577f]">編輯</button>
+                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, shoppingItems: previous.shoppingItems.filter((entry) => entry.id !== item.id) }))} className="rounded-full border border-[#c8dfec] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
                             <button type="button" onClick={() => setAppData((previous) => ({ ...previous, shoppingItems: previous.shoppingItems.map((entry) => entry.id === item.id ? { ...entry, status: entry.status === '已購買' ? '待購買' : '已購買' } : entry) }))} className="rounded-full bg-[#f2f8f3] px-3 py-1.5 text-xs font-medium text-[#3d8d57]">{item.status === '已購買' ? '改為未購買' : '已購買'}</button>
                           </div>
                         )}
@@ -1181,17 +1161,17 @@ function App() {
 
           {activePage === 'info' && infoCategory === '美食' && (
             <div className="space-y-4">
-              <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
+              <section className="rounded-[30px] border border-[#c7dce8] bg-[#fbfdff] p-4 shadow-[0_18px_35px_rgba(28,74,105,0.10)] sm:p-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#85736d]">餐廳列表</div>
-                    <h2 className="text-2xl font-semibold text-[#1f2937]">Food</h2>
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#658093]">餐廳列表</div>
+                    <h2 className="text-2xl font-semibold text-[#173b59]">Food</h2>
                   </div>
                   {canEdit && (
                     <button
                       type="button"
                       onClick={() => setRestaurantDraft({ ...emptyRestaurant(), id: createId() })}
-                      className="inline-flex items-center gap-2 rounded-full bg-[#d74d4d] px-3 py-2 text-sm font-medium text-white"
+                      className="inline-flex items-center gap-2 rounded-full bg-[#176fa5] px-3 py-2 text-sm font-medium text-white"
                     >
                       <Plus size={16} />
                       新增餐廳
@@ -1201,19 +1181,19 @@ function App() {
 
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-3 text-[#7a6a62]" size={16} />
+                    <Search className="absolute left-3 top-3 text-[#587286]" size={16} />
                     <input
                       type="text"
                       value={restaurantSearch}
                       onChange={(event) => setRestaurantSearch(event.target.value)}
                       placeholder="搜尋餐廳或區域"
-                      className="h-11 w-full rounded-full border border-[#eeded8] bg-[#fffaf8] pl-10 pr-3 text-sm text-[#1f2937] outline-none"
+                      className="h-11 w-full rounded-full border border-[#cbdfe9] bg-[#f4f9fc] pl-10 pr-3 text-sm text-[#173b59] outline-none"
                     />
                   </div>
                   <select
                     value={restaurantFilter}
                     onChange={(event) => setRestaurantFilter(event.target.value)}
-                    className="h-11 rounded-full border border-[#eeded8] bg-[#fffaf8] px-3 text-sm text-[#374151] outline-none"
+                    className="h-11 rounded-full border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm text-[#284b63] outline-none"
                   >
                     <option value="全部">全部類型</option>
                     {Array.from(new Set(appData.restaurants.map((item) => item.type))).map((type) => (
@@ -1224,24 +1204,24 @@ function App() {
 
                 <div className="space-y-3">
                   {filteredRestaurants.map((restaurant) => (
-                    <div key={restaurant.id} className="rounded-[24px] border border-[#f0e6df] bg-white p-3 shadow-sm">
+                    <div key={restaurant.id} className="rounded-[24px] border border-[#dceaf1] bg-white p-3 shadow-sm">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <div className="text-base font-semibold text-[#1f2937]">{restaurant.name}</div>
-                          <div className="mt-1 text-xs text-[#6b7280]">{restaurant.type} · {restaurant.area}</div>
+                          <div className="text-base font-semibold text-[#173b59]">{restaurant.name}</div>
+                          <div className="mt-1 text-xs text-[#60798b]">{restaurant.type} · {restaurant.area}</div>
                         </div>
                         {canEdit && (
                           <button
                             type="button"
                             onClick={() => setRestaurantDraft(restaurant)}
-                            className="rounded-full bg-[#fff3f1] px-2 py-1 text-[10px] font-medium text-[#b23b3b]"
+                            className="rounded-full bg-[#eaf5fb] px-2 py-1 text-[10px] font-medium text-[#15577f]"
                           >
                             編輯
                           </button>
                         )}
                       </div>
 
-                      <div className="mt-3 grid gap-2 text-sm text-[#374151] sm:grid-cols-2">
+                      <div className="mt-3 grid gap-2 text-sm text-[#284b63] sm:grid-cols-2">
                         <div>地址：{restaurant.address}</div>
                         <div>預算：{restaurant.budget}</div>
                         <div>營業時間：{restaurant.hours}</div>
@@ -1249,16 +1229,16 @@ function App() {
                       </div>
 
                       <div className="mt-3 flex items-center justify-between gap-2">
-                        <div className="text-sm text-[#4b5563]">{restaurant.notes}</div>
+                        <div className="text-sm text-[#3e586d]">{restaurant.notes}</div>
                         <div className="flex gap-2">
                           {canEdit && (
-                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, restaurants: previous.restaurants.map((entry) => entry.id === restaurant.id ? { ...entry, favorite: !entry.favorite } : entry) }))} className={`rounded-full px-2 py-1 text-[10px] font-medium ${restaurant.favorite ? 'bg-[#fdf2d7] text-[#a6712a]' : 'bg-[#f2f4f7] text-[#4b5563]'}`}>
+                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, restaurants: previous.restaurants.map((entry) => entry.id === restaurant.id ? { ...entry, favorite: !entry.favorite } : entry) }))} className={`rounded-full px-2 py-1 text-[10px] font-medium ${restaurant.favorite ? 'bg-[#fff0d8] text-[#a6712a]' : 'bg-[#edf5f8] text-[#3e586d]'}`}>
                               {restaurant.favorite ? '已收藏' : '收藏'}
                             </button>
                           )}
-                          <a href={restaurant.link || googleMapsLink(restaurant.address)} target="_blank" rel="noreferrer" className="rounded-full bg-[#d74d4d] px-3 py-1.5 text-xs font-medium text-white">Google Maps</a>
+                          <a href={restaurant.link || googleMapsLink(restaurant.address)} target="_blank" rel="noreferrer" className="rounded-full bg-[#176fa5] px-3 py-1.5 text-xs font-medium text-white">Google Maps</a>
                           {canEdit && (
-                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, restaurants: previous.restaurants.filter((entry) => entry.id !== restaurant.id) }))} className="rounded-full border border-[#eedad3] px-3 py-1.5 text-xs font-medium text-[#4b5563]">刪除</button>
+                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, restaurants: previous.restaurants.filter((entry) => entry.id !== restaurant.id) }))} className="rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
                           )}
                         </div>
                       </div>
@@ -1271,17 +1251,17 @@ function App() {
 
           {activePage === 'info' && infoCategory === '旅遊資訊' && (
             <div className="space-y-4">
-              <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
+              <section className="rounded-[30px] border border-[#c7dce8] bg-[#fbfdff] p-4 shadow-[0_18px_35px_rgba(28,74,105,0.10)] sm:p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#85736d]">旅遊資訊中心</div>
-                    <h2 className="text-2xl font-semibold text-[#1f2937]">Travel Info</h2>
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#658093]">旅遊資訊中心</div>
+                    <h2 className="text-2xl font-semibold text-[#173b59]">Travel Info</h2>
                   </div>
                   {canEdit && (
                     <button
                       type="button"
                       onClick={() => setTravelInfoDraft({ ...emptyInfoItem(), id: createId() })}
-                      className="inline-flex items-center gap-2 rounded-full bg-[#d74d4d] px-3 py-2 text-sm font-medium text-white"
+                      className="inline-flex items-center gap-2 rounded-full bg-[#176fa5] px-3 py-2 text-sm font-medium text-white"
                     >
                       <Plus size={16} />
                       新增資訊
@@ -1291,16 +1271,16 @@ function App() {
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   {appData.travelInfo.map((item) => (
-                    <div key={item.id} className="rounded-[24px] border border-[#f0e6df] bg-white p-4 shadow-sm">
+                    <div key={item.id} className="rounded-[24px] border border-[#dceaf1] bg-white p-4 shadow-sm">
                       <div className="flex items-center justify-between gap-2">
-                        <div className="text-base font-semibold text-[#1f2937]">{item.title}</div>
-                        <span className="rounded-full bg-[#fff0ee] px-2 py-1 text-[10px] font-medium text-[#b23b3b]">{item.badge}</span>
+                        <div className="text-base font-semibold text-[#173b59]">{item.title}</div>
+                        <span className="rounded-full bg-[#e8f4fa] px-2 py-1 text-[10px] font-medium text-[#15577f]">{item.badge}</span>
                       </div>
-                      <p className="mt-3 text-sm text-[#4b5563]">{item.content}</p>
+                      <p className="mt-3 text-sm text-[#3e586d]">{item.content}</p>
                       {canEdit && (
                         <div className="mt-3 flex gap-2">
-                          <button type="button" onClick={() => setTravelInfoDraft(item)} className="rounded-full bg-[#fff3f1] px-3 py-1.5 text-xs font-medium text-[#b23b3b]">編輯</button>
-                          <button type="button" onClick={() => setAppData((previous) => ({ ...previous, travelInfo: previous.travelInfo.filter((entry) => entry.id !== item.id) }))} className="rounded-full border border-[#eed7d3] px-3 py-1.5 text-xs font-medium text-[#4b5563]">刪除</button>
+                          <button type="button" onClick={() => setTravelInfoDraft(item)} className="rounded-full bg-[#eaf5fb] px-3 py-1.5 text-xs font-medium text-[#15577f]">編輯</button>
+                          <button type="button" onClick={() => setAppData((previous) => ({ ...previous, travelInfo: previous.travelInfo.filter((entry) => entry.id !== item.id) }))} className="rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
                         </div>
                       )}
                     </div>
@@ -1312,47 +1292,47 @@ function App() {
 
           {activePage === 'settings' && (
             <div className="space-y-4">
-              <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-5 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-6">
+              <section className="rounded-[30px] border border-[#c7dce8] bg-[#fbfdff] p-5 shadow-[0_18px_35px_rgba(28,74,105,0.10)] sm:p-6">
                 <div className="mb-5">
-                  <div className="text-[11px] uppercase tracking-[0.12em] text-[#85736d]">帳號與權限</div>
-                  <h2 className="text-2xl font-semibold text-[#1f2937]">設定</h2>
+                  <div className="text-[11px] uppercase tracking-[0.12em] text-[#658093]">帳號與權限</div>
+                  <h2 className="text-2xl font-semibold text-[#173b59]">設定</h2>
                 </div>
 
                 {isSupabaseConfigured && session ? (
-                  <div className="flex flex-col gap-4 rounded-[24px] border border-[#f0e6df] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-col gap-4 rounded-[24px] border border-[#dceaf1] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <div className="flex items-center gap-2 font-semibold text-[#1f2937]">
+                      <div className="flex items-center gap-2 font-semibold text-[#173b59]">
                         <ShieldCheck size={18} className="text-[#3d8d57]" />
                         {canEdit ? '管理者已登入' : '目前帳號沒有管理權限'}
                       </div>
-                      <p className="mt-1 text-sm text-[#6b7280]">{session.user.email}</p>
+                      <p className="mt-1 text-sm text-[#60798b]">{session.user.email}</p>
                     </div>
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-[#ead7d0] px-4 py-2.5 text-sm font-medium text-[#524743]"
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-[#c7dce8] px-4 py-2.5 text-sm font-medium text-[#28475d]"
                     >
                       <LogOut size={16} />
                       登出
                     </button>
                   </div>
                 ) : isSupabaseConfigured ? (
-                  <div className="rounded-[24px] border border-[#f0e6df] bg-white p-4">
-                    <p className="mb-4 text-sm leading-6 text-[#6b7280]">
+                  <div className="rounded-[24px] border border-[#dceaf1] bg-white p-4">
+                    <p className="mb-4 text-sm leading-6 text-[#60798b]">
                       訪客可以直接查看行程；只有管理者需要登入以編輯共享資料。
                     </p>
                     <button
                       type="button"
                       onClick={() => setShowOwnerGate(true)}
-                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[#d74d4d] px-5 py-3 text-sm font-semibold text-white shadow-sm"
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[#176fa5] px-5 py-3 text-sm font-semibold text-white shadow-sm"
                     >
                       <ShieldCheck size={17} />
                       管理者登入
                     </button>
                   </div>
                 ) : (
-                  <div className="rounded-[24px] border border-[#f0e6df] bg-white p-4">
-                    <p className="mb-4 text-sm leading-6 text-[#6b7280]">
+                  <div className="rounded-[24px] border border-[#dceaf1] bg-white p-4">
+                    <p className="mb-4 text-sm leading-6 text-[#60798b]">
                       {canEdit ? '目前使用本機管理者模式。' : '訪客可以查看行程；管理者模式可編輯本機資料。'}
                     </p>
                     <button
@@ -1360,8 +1340,8 @@ function App() {
                       onClick={canEdit ? exitOwnerAccess : () => setShowOwnerGate(true)}
                       className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold ${
                         canEdit
-                          ? 'border border-[#ead7d0] text-[#524743]'
-                          : 'bg-[#d74d4d] text-white shadow-sm'
+                          ? 'border border-[#c7dce8] text-[#28475d]'
+                          : 'bg-[#176fa5] text-white shadow-sm'
                       }`}
                     >
                       <ShieldCheck size={17} />
@@ -1375,17 +1355,17 @@ function App() {
 
           {activePage === 'notes' && (
             <div className="space-y-4">
-              <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
+              <section className="rounded-[30px] border border-[#c7dce8] bg-[#fbfdff] p-4 shadow-[0_18px_35px_rgba(28,74,105,0.10)] sm:p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#85736d]">旅行備忘</div>
-                    <h2 className="text-2xl font-semibold text-[#1f2937]">Notes</h2>
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#658093]">旅行備忘</div>
+                    <h2 className="text-2xl font-semibold text-[#173b59]">Notes</h2>
                   </div>
                   {canEdit && (
                     <button
                       type="button"
                       onClick={() => setNoteDraft({ ...emptyNote(), id: createId() })}
-                      className="inline-flex items-center gap-2 rounded-full bg-[#d74d4d] px-3 py-2 text-sm font-medium text-white"
+                      className="inline-flex items-center gap-2 rounded-full bg-[#176fa5] px-3 py-2 text-sm font-medium text-white"
                     >
                       <Plus size={16} />
                       新增備忘
@@ -1395,18 +1375,18 @@ function App() {
 
                 <div className="space-y-3">
                   {appData.notes.map((note) => (
-                    <div key={note.id} className="rounded-[24px] border border-[#f0e6df] bg-white p-4 shadow-sm">
+                    <div key={note.id} className="rounded-[24px] border border-[#dceaf1] bg-white p-4 shadow-sm">
                       <div className="flex items-center justify-between gap-2">
-                        <div className="text-base font-semibold text-[#1f2937]">{note.title}</div>
+                        <div className="text-base font-semibold text-[#173b59]">{note.title}</div>
                         {canEdit && (
-                          <button type="button" onClick={() => setNoteDraft(note)} className="rounded-full bg-[#fff3f1] px-2.5 py-1.5 text-xs font-medium text-[#b23b3b]">編輯</button>
+                          <button type="button" onClick={() => setNoteDraft(note)} className="rounded-full bg-[#eaf5fb] px-2.5 py-1.5 text-xs font-medium text-[#15577f]">編輯</button>
                         )}
                       </div>
-                      <div className="mt-2 text-xs text-[#8b7e76]">{note.createdAt}</div>
-                      <p className="mt-3 text-sm leading-7 text-[#4b5563]">{note.content}</p>
+                      <div className="mt-2 text-xs text-[#6f8798]">{note.createdAt}</div>
+                      <p className="mt-3 text-sm leading-7 text-[#3e586d]">{note.content}</p>
                       {canEdit && (
                         <div className="mt-3 flex justify-end">
-                          <button type="button" onClick={() => setAppData((previous) => ({ ...previous, notes: previous.notes.filter((entry) => entry.id !== note.id) }))} className="rounded-full border border-[#eed7d3] px-3 py-1.5 text-xs font-medium text-[#4b5563]">刪除</button>
+                          <button type="button" onClick={() => setAppData((previous) => ({ ...previous, notes: previous.notes.filter((entry) => entry.id !== note.id) }))} className="rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
                         </div>
                       )}
                     </div>
@@ -1418,8 +1398,8 @@ function App() {
 
           {activePage === 'home' && canEdit && (
             <div className="mt-4 flex flex-wrap gap-3">
-              <button type="button" onClick={exportData} className="rounded-full bg-[#fff3f1] px-4 py-2 text-sm font-medium text-[#b23b3b]">匯出 JSON</button>
-              <label className="rounded-full bg-[#eef3ee] px-4 py-2 text-sm font-medium text-[#2d6a4d] cursor-pointer">
+              <button type="button" onClick={exportData} className="rounded-full bg-[#eaf5fb] px-4 py-2 text-sm font-medium text-[#15577f]">匯出 JSON</button>
+              <label className="rounded-full bg-[#eaf4f8] px-4 py-2 text-sm font-medium text-[#2d6a4d] cursor-pointer">
                 匯入 JSON
                 <input type="file" accept="application/json" className="hidden" onChange={importData} />
               </label>
@@ -1428,7 +1408,7 @@ function App() {
         </main>
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#ebdfd9] bg-[#fffdfa]/95 p-2 backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-[#c7dce8] bg-[#fbfdff]/95 p-2 backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5 gap-2">
           {navItems.slice(0, 5).map(({ key, label, icon: Icon }) => (
             <button
@@ -1436,7 +1416,7 @@ function App() {
               type="button"
               onClick={() => setActivePage(key)}
               className={`flex flex-col items-center gap-1 rounded-2xl px-2 py-2 text-[11px] ${
-                activePage === key ? 'bg-[#fcebea] text-[#b23b3b]' : 'text-[#4b5563]'
+                activePage === key ? 'bg-[#dceef8] text-[#15577f]' : 'text-[#3e586d]'
               }`}
             >
               <Icon size={18} />
@@ -1456,20 +1436,20 @@ function App() {
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
           <div className="w-full max-w-md rounded-[30px] bg-white p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-xl font-semibold text-[#1f2937]">管理者模式</div>
-              <button type="button" onClick={() => setShowOwnerGate(false)} className="rounded-full bg-[#f9f3f1] p-2 text-[#4b5563]"><X size={16} /></button>
+              <div className="text-xl font-semibold text-[#173b59]">管理者模式</div>
+              <button type="button" onClick={() => setShowOwnerGate(false)} className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]"><X size={16} /></button>
             </div>
-            <p className="mb-3 text-sm text-[#4b5563]">這個頁面已切換成訪客模式，輸入管理者編碼後即可解鎖編輯權限。</p>
+            <p className="mb-3 text-sm text-[#3e586d]">這個頁面已切換成訪客模式，輸入管理者編碼後即可解鎖編輯權限。</p>
             <input
               type="password"
               value={ownerCodeInput}
               onChange={(event) => setOwnerCodeInput(event.target.value)}
               placeholder="請輸入管理者編碼"
-              className="h-11 w-full rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none"
+              className="h-11 w-full rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none"
             />
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setShowOwnerGate(false)} className="rounded-full border border-[#eed7d4] px-4 py-2 text-sm font-medium text-[#4b5563]">取消</button>
-              <button type="button" onClick={unlockOwnerAccess} className="rounded-full bg-[#d74d4d] px-4 py-2 text-sm font-medium text-white">解鎖編輯</button>
+              <button type="button" onClick={() => setShowOwnerGate(false)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>
+              <button type="button" onClick={unlockOwnerAccess} className="rounded-full bg-[#176fa5] px-4 py-2 text-sm font-medium text-white">解鎖編輯</button>
             </div>
           </div>
         </div>
@@ -1479,21 +1459,21 @@ function App() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
           <div className="w-full max-w-xl rounded-[30px] bg-white p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-xl font-semibold text-[#1f2937]">旅遊資訊編輯</div>
-              <button type="button" onClick={() => setIsTripEditorOpen(false)} className="rounded-full bg-[#f9f3f1] p-2 text-[#4b5563]"><X size={16} /></button>
+              <div className="text-xl font-semibold text-[#173b59]">旅遊資訊編輯</div>
+              <button type="button" onClick={() => setIsTripEditorOpen(false)} className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]"><X size={16} /></button>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <input value={tripDraft.tripName} onChange={(event) => setTripDraft({ ...tripDraft, tripName: event.target.value })} placeholder="旅行名稱" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
-              <input value={tripDraft.subtitle} onChange={(event) => setTripDraft({ ...tripDraft, subtitle: event.target.value })} placeholder="副標題" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
-              <input value={tripDraft.travelDates} onChange={(event) => setTripDraft({ ...tripDraft, travelDates: event.target.value })} placeholder="旅行日期" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input type="number" value={tripDraft.durationDays} onChange={(event) => setTripDraft({ ...tripDraft, durationDays: Number(event.target.value) || 1 })} placeholder="天數" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input type="number" value={tripDraft.travelers} onChange={(event) => setTripDraft({ ...tripDraft, travelers: Number(event.target.value) || 1 })} placeholder="旅伴人數" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={tripDraft.hotelName} onChange={(event) => setTripDraft({ ...tripDraft, hotelName: event.target.value })} placeholder="飯店名稱" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
-              <input value={tripDraft.hotelAddress} onChange={(event) => setTripDraft({ ...tripDraft, hotelAddress: event.target.value })} placeholder="飯店地址" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={tripDraft.tripName} onChange={(event) => setTripDraft({ ...tripDraft, tripName: event.target.value })} placeholder="旅行名稱" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={tripDraft.subtitle} onChange={(event) => setTripDraft({ ...tripDraft, subtitle: event.target.value })} placeholder="副標題" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={tripDraft.travelDates} onChange={(event) => setTripDraft({ ...tripDraft, travelDates: event.target.value })} placeholder="旅行日期" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input type="number" value={tripDraft.durationDays} onChange={(event) => setTripDraft({ ...tripDraft, durationDays: Number(event.target.value) || 1 })} placeholder="天數" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input type="number" value={tripDraft.travelers} onChange={(event) => setTripDraft({ ...tripDraft, travelers: Number(event.target.value) || 1 })} placeholder="旅伴人數" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={tripDraft.hotelName} onChange={(event) => setTripDraft({ ...tripDraft, hotelName: event.target.value })} placeholder="飯店名稱" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={tripDraft.hotelAddress} onChange={(event) => setTripDraft({ ...tripDraft, hotelAddress: event.target.value })} placeholder="飯店地址" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setIsTripEditorOpen(false)} className="rounded-full border border-[#eed7d4] px-4 py-2 text-sm font-medium text-[#4b5563]">取消</button>
-              <button type="button" onClick={saveTripInfo} className="rounded-full bg-[#d74d4d] px-4 py-2 text-sm font-medium text-white">儲存</button>
+              <button type="button" onClick={() => setIsTripEditorOpen(false)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>
+              <button type="button" onClick={saveTripInfo} className="rounded-full bg-[#176fa5] px-4 py-2 text-sm font-medium text-white">儲存</button>
             </div>
           </div>
         </div>
@@ -1503,21 +1483,21 @@ function App() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
           <div className="w-full max-w-xl rounded-[30px] bg-white p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-xl font-semibold text-[#1f2937]">{itineraryDraft.id ? '編輯行程' : '新增行程'}</div>
-              <button type="button" onClick={() => setItineraryDraft(null)} className="rounded-full bg-[#f9f3f1] p-2 text-[#4b5563]"><X size={16} /></button>
+              <div className="text-xl font-semibold text-[#173b59]">{itineraryDraft.id ? '編輯行程' : '新增行程'}</div>
+              <button type="button" onClick={() => setItineraryDraft(null)} className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]"><X size={16} /></button>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <input value={itineraryDraft.title} onChange={(event) => setItineraryDraft({ ...itineraryDraft, title: event.target.value })} placeholder="行程名稱" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
-              <input value={itineraryDraft.startTime} onChange={(event) => setItineraryDraft({ ...itineraryDraft, startTime: event.target.value })} placeholder="開始時間" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={itineraryDraft.duration} onChange={(event) => setItineraryDraft({ ...itineraryDraft, duration: event.target.value })} placeholder="停留時間" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={itineraryDraft.category} onChange={(event) => setItineraryDraft({ ...itineraryDraft, category: event.target.value })} placeholder="分類" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={itineraryDraft.transport} onChange={(event) => setItineraryDraft({ ...itineraryDraft, transport: event.target.value })} placeholder="交通方式" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={itineraryDraft.address} onChange={(event) => setItineraryDraft({ ...itineraryDraft, address: event.target.value })} placeholder="地址" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
-              <textarea value={itineraryDraft.notes} onChange={(event) => setItineraryDraft({ ...itineraryDraft, notes: event.target.value })} placeholder="備註" className="min-h-24 rounded-xl border border-[#eddfdb] bg-[#fffaf8] p-3 text-sm outline-none sm:col-span-2" />
+              <input value={itineraryDraft.title} onChange={(event) => setItineraryDraft({ ...itineraryDraft, title: event.target.value })} placeholder="行程名稱" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={itineraryDraft.startTime} onChange={(event) => setItineraryDraft({ ...itineraryDraft, startTime: event.target.value })} placeholder="開始時間" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={itineraryDraft.duration} onChange={(event) => setItineraryDraft({ ...itineraryDraft, duration: event.target.value })} placeholder="停留時間" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={itineraryDraft.category} onChange={(event) => setItineraryDraft({ ...itineraryDraft, category: event.target.value })} placeholder="分類" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={itineraryDraft.transport} onChange={(event) => setItineraryDraft({ ...itineraryDraft, transport: event.target.value })} placeholder="交通方式" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={itineraryDraft.address} onChange={(event) => setItineraryDraft({ ...itineraryDraft, address: event.target.value })} placeholder="地址" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <textarea value={itineraryDraft.notes} onChange={(event) => setItineraryDraft({ ...itineraryDraft, notes: event.target.value })} placeholder="備註" className="min-h-24 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] p-3 text-sm outline-none sm:col-span-2" />
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setItineraryDraft(null)} className="rounded-full border border-[#eed7d4] px-4 py-2 text-sm font-medium text-[#4b5563]">取消</button>
-              <button type="button" onClick={updateItineraryItem} className="rounded-full bg-[#d74d4d] px-4 py-2 text-sm font-medium text-white">儲存</button>
+              <button type="button" onClick={() => setItineraryDraft(null)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>
+              <button type="button" onClick={updateItineraryItem} className="rounded-full bg-[#176fa5] px-4 py-2 text-sm font-medium text-white">儲存</button>
             </div>
           </div>
         </div>
@@ -1527,21 +1507,21 @@ function App() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
           <div className="w-full max-w-xl rounded-[30px] bg-white p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-xl font-semibold text-[#1f2937]">{shoppingDraft.id ? '編輯購物項目' : '新增購物項目'}</div>
-              <button type="button" onClick={() => setShoppingDraft(null)} className="rounded-full bg-[#f9f3f1] p-2 text-[#4b5563]"><X size={16} /></button>
+              <div className="text-xl font-semibold text-[#173b59]">{shoppingDraft.id ? '編輯購物項目' : '新增購物項目'}</div>
+              <button type="button" onClick={() => setShoppingDraft(null)} className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]"><X size={16} /></button>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <input value={shoppingDraft.name} onChange={(event) => setShoppingDraft({ ...shoppingDraft, name: event.target.value })} placeholder="商品名稱" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
-              <input value={shoppingDraft.brand} onChange={(event) => setShoppingDraft({ ...shoppingDraft, brand: event.target.value })} placeholder="品牌或店家" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={shoppingDraft.area} onChange={(event) => setShoppingDraft({ ...shoppingDraft, area: event.target.value })} placeholder="區域" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={shoppingDraft.preferredStore} onChange={(event) => setShoppingDraft({ ...shoppingDraft, preferredStore: event.target.value })} placeholder="預計購買店家" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
-              <input type="number" value={shoppingDraft.budget} onChange={(event) => setShoppingDraft({ ...shoppingDraft, budget: Number(event.target.value) })} placeholder="預算" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input type="number" value={shoppingDraft.actualPrice} onChange={(event) => setShoppingDraft({ ...shoppingDraft, actualPrice: Number(event.target.value) })} placeholder="實際價格" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <textarea value={shoppingDraft.notes} onChange={(event) => setShoppingDraft({ ...shoppingDraft, notes: event.target.value })} placeholder="備註" className="min-h-24 rounded-xl border border-[#eddfdb] bg-[#fffaf8] p-3 text-sm outline-none sm:col-span-2" />
+              <input value={shoppingDraft.name} onChange={(event) => setShoppingDraft({ ...shoppingDraft, name: event.target.value })} placeholder="商品名稱" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={shoppingDraft.brand} onChange={(event) => setShoppingDraft({ ...shoppingDraft, brand: event.target.value })} placeholder="品牌或店家" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={shoppingDraft.area} onChange={(event) => setShoppingDraft({ ...shoppingDraft, area: event.target.value })} placeholder="區域" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={shoppingDraft.preferredStore} onChange={(event) => setShoppingDraft({ ...shoppingDraft, preferredStore: event.target.value })} placeholder="預計購買店家" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input type="number" value={shoppingDraft.budget} onChange={(event) => setShoppingDraft({ ...shoppingDraft, budget: Number(event.target.value) })} placeholder="預算" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input type="number" value={shoppingDraft.actualPrice} onChange={(event) => setShoppingDraft({ ...shoppingDraft, actualPrice: Number(event.target.value) })} placeholder="實際價格" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <textarea value={shoppingDraft.notes} onChange={(event) => setShoppingDraft({ ...shoppingDraft, notes: event.target.value })} placeholder="備註" className="min-h-24 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] p-3 text-sm outline-none sm:col-span-2" />
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setShoppingDraft(null)} className="rounded-full border border-[#eed7d4] px-4 py-2 text-sm font-medium text-[#4b5563]">取消</button>
-              <button type="button" onClick={saveShoppingItem} className="rounded-full bg-[#d74d4d] px-4 py-2 text-sm font-medium text-white">儲存</button>
+              <button type="button" onClick={() => setShoppingDraft(null)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>
+              <button type="button" onClick={saveShoppingItem} className="rounded-full bg-[#176fa5] px-4 py-2 text-sm font-medium text-white">儲存</button>
             </div>
           </div>
         </div>
@@ -1551,21 +1531,21 @@ function App() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
           <div className="w-full max-w-xl rounded-[30px] bg-white p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-xl font-semibold text-[#1f2937]">{restaurantDraft.id ? '編輯餐廳' : '新增餐廳'}</div>
-              <button type="button" onClick={() => setRestaurantDraft(null)} className="rounded-full bg-[#f9f3f1] p-2 text-[#4b5563]"><X size={16} /></button>
+              <div className="text-xl font-semibold text-[#173b59]">{restaurantDraft.id ? '編輯餐廳' : '新增餐廳'}</div>
+              <button type="button" onClick={() => setRestaurantDraft(null)} className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]"><X size={16} /></button>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <input value={restaurantDraft.name} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, name: event.target.value })} placeholder="餐廳名稱" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
-              <input value={restaurantDraft.type} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, type: event.target.value })} placeholder="餐點類型" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={restaurantDraft.area} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, area: event.target.value })} placeholder="區域" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={restaurantDraft.address} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, address: event.target.value })} placeholder="地址" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none sm:col-span-2" />
-              <input value={restaurantDraft.budget} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, budget: event.target.value })} placeholder="預算範圍" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={restaurantDraft.hours} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, hours: event.target.value })} placeholder="營業時間" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <textarea value={restaurantDraft.notes} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, notes: event.target.value })} placeholder="備註" className="min-h-24 rounded-xl border border-[#eddfdb] bg-[#fffaf8] p-3 text-sm outline-none sm:col-span-2" />
+              <input value={restaurantDraft.name} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, name: event.target.value })} placeholder="餐廳名稱" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={restaurantDraft.type} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, type: event.target.value })} placeholder="餐點類型" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={restaurantDraft.area} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, area: event.target.value })} placeholder="區域" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={restaurantDraft.address} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, address: event.target.value })} placeholder="地址" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={restaurantDraft.budget} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, budget: event.target.value })} placeholder="預算範圍" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={restaurantDraft.hours} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, hours: event.target.value })} placeholder="營業時間" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <textarea value={restaurantDraft.notes} onChange={(event) => setRestaurantDraft({ ...restaurantDraft, notes: event.target.value })} placeholder="備註" className="min-h-24 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] p-3 text-sm outline-none sm:col-span-2" />
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setRestaurantDraft(null)} className="rounded-full border border-[#eed7d4] px-4 py-2 text-sm font-medium text-[#4b5563]">取消</button>
-              <button type="button" onClick={saveRestaurant} className="rounded-full bg-[#d74d4d] px-4 py-2 text-sm font-medium text-white">儲存</button>
+              <button type="button" onClick={() => setRestaurantDraft(null)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>
+              <button type="button" onClick={saveRestaurant} className="rounded-full bg-[#176fa5] px-4 py-2 text-sm font-medium text-white">儲存</button>
             </div>
           </div>
         </div>
@@ -1575,17 +1555,17 @@ function App() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
           <div className="w-full max-w-xl rounded-[30px] bg-white p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-xl font-semibold text-[#1f2937]">{travelInfoDraft.id ? '編輯資訊' : '新增資訊'}</div>
-              <button type="button" onClick={() => setTravelInfoDraft(null)} className="rounded-full bg-[#f9f3f1] p-2 text-[#4b5563]"><X size={16} /></button>
+              <div className="text-xl font-semibold text-[#173b59]">{travelInfoDraft.id ? '編輯資訊' : '新增資訊'}</div>
+              <button type="button" onClick={() => setTravelInfoDraft(null)} className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]"><X size={16} /></button>
             </div>
             <div className="grid gap-3">
-              <input value={travelInfoDraft.title} onChange={(event) => setTravelInfoDraft({ ...travelInfoDraft, title: event.target.value })} placeholder="標題" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <input value={travelInfoDraft.badge} onChange={(event) => setTravelInfoDraft({ ...travelInfoDraft, badge: event.target.value })} placeholder="狀態標籤" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <textarea value={travelInfoDraft.content} onChange={(event) => setTravelInfoDraft({ ...travelInfoDraft, content: event.target.value })} placeholder="內容" className="min-h-28 rounded-xl border border-[#eddfdb] bg-[#fffaf8] p-3 text-sm outline-none" />
+              <input value={travelInfoDraft.title} onChange={(event) => setTravelInfoDraft({ ...travelInfoDraft, title: event.target.value })} placeholder="標題" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <input value={travelInfoDraft.badge} onChange={(event) => setTravelInfoDraft({ ...travelInfoDraft, badge: event.target.value })} placeholder="狀態標籤" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <textarea value={travelInfoDraft.content} onChange={(event) => setTravelInfoDraft({ ...travelInfoDraft, content: event.target.value })} placeholder="內容" className="min-h-28 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] p-3 text-sm outline-none" />
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setTravelInfoDraft(null)} className="rounded-full border border-[#eed7d4] px-4 py-2 text-sm font-medium text-[#4b5563]">取消</button>
-              <button type="button" onClick={saveTravelInfo} className="rounded-full bg-[#d74d4d] px-4 py-2 text-sm font-medium text-white">儲存</button>
+              <button type="button" onClick={() => setTravelInfoDraft(null)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>
+              <button type="button" onClick={saveTravelInfo} className="rounded-full bg-[#176fa5] px-4 py-2 text-sm font-medium text-white">儲存</button>
             </div>
           </div>
         </div>
@@ -1595,16 +1575,16 @@ function App() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
           <div className="w-full max-w-xl rounded-[30px] bg-white p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-xl font-semibold text-[#1f2937]">{noteDraft.id ? '編輯備忘' : '新增備忘'}</div>
-              <button type="button" onClick={() => setNoteDraft(null)} className="rounded-full bg-[#f9f3f1] p-2 text-[#4b5563]"><X size={16} /></button>
+              <div className="text-xl font-semibold text-[#173b59]">{noteDraft.id ? '編輯備忘' : '新增備忘'}</div>
+              <button type="button" onClick={() => setNoteDraft(null)} className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]"><X size={16} /></button>
             </div>
             <div className="grid gap-3">
-              <input value={noteDraft.title} onChange={(event) => setNoteDraft({ ...noteDraft, title: event.target.value })} placeholder="標題" className="h-11 rounded-xl border border-[#eddfdb] bg-[#fffaf8] px-3 text-sm outline-none" />
-              <textarea value={noteDraft.content} onChange={(event) => setNoteDraft({ ...noteDraft, content: event.target.value })} placeholder="內容" className="min-h-28 rounded-xl border border-[#eddfdb] bg-[#fffaf8] p-3 text-sm outline-none" />
+              <input value={noteDraft.title} onChange={(event) => setNoteDraft({ ...noteDraft, title: event.target.value })} placeholder="標題" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
+              <textarea value={noteDraft.content} onChange={(event) => setNoteDraft({ ...noteDraft, content: event.target.value })} placeholder="內容" className="min-h-28 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] p-3 text-sm outline-none" />
             </div>
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setNoteDraft(null)} className="rounded-full border border-[#eed7d4] px-4 py-2 text-sm font-medium text-[#4b5563]">取消</button>
-              <button type="button" onClick={saveNote} className="rounded-full bg-[#d74d4d] px-4 py-2 text-sm font-medium text-white">儲存</button>
+              <button type="button" onClick={() => setNoteDraft(null)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>
+              <button type="button" onClick={saveNote} className="rounded-full bg-[#176fa5] px-4 py-2 text-sm font-medium text-white">儲存</button>
             </div>
           </div>
         </div>
