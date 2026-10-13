@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import {
   ArrowDown,
   ArrowUp,
@@ -6,8 +6,11 @@ import {
   Check,
   ChevronRight,
   Clock3,
+  Database,
   Hotel,
   Home,
+  Loader2,
+  LogOut,
   MapPinned,
   NotebookPen,
   Plane,
@@ -22,6 +25,7 @@ import {
   UtensilsCrossed,
   X,
 } from 'lucide-react'
+import type { Session } from '@supabase/supabase-js'
 import type {
   ItineraryItem,
   NoteItem,
@@ -39,6 +43,9 @@ import { restaurantsSample } from './data/restaurants'
 import { shoppingSample } from './data/shopping'
 import { tripSample } from './data/trip'
 import { travelInfoSample } from './data/travelInfo'
+import { LoginPage } from './components/LoginPage'
+import { isSupabaseConfigured, supabase } from './lib/supabase'
+import { checkIsAdmin, loadTravelData, saveTravelData } from './lib/travelDataStore'
 
 const STORAGE_KEY = 'tokyo-trip-app-v2'
 const LEGACY_STORAGE_KEY = 'tokyo-trip-app-v1'
@@ -163,8 +170,16 @@ function App() {
   const [ownerCodeInput, setOwnerCodeInput] = useState('')
   const [showOwnerGate, setShowOwnerGate] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [isAuthLoading, setIsAuthLoading] = useState(isSupabaseConfigured)
+  const [isDataLoading, setIsDataLoading] = useState(isSupabaseConfigured)
+  const [isRemoteAdmin, setIsRemoteAdmin] = useState(false)
+  const [syncMessage, setSyncMessage] = useState(
+    isSupabaseConfigured ? '準備連線到雲端資料庫' : '本機模式',
+  )
+  const skipNextRemoteSave = useRef(false)
 
-  const canEdit = ownerAccess === 'owner'
+  const canEdit = isSupabaseConfigured ? isRemoteAdmin : ownerAccess === 'owner'
 
   useEffect(() => {
     const onBeforeInstallPrompt = (event: Event) => {
@@ -183,6 +198,73 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!supabase) return
+
+    let isMounted = true
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isMounted) return
+      setSession(data.session)
+      setIsAuthLoading(false)
+    })
+
+    const { data } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession)
+      if (nextSession) {
+        setIsDataLoading(true)
+        setSyncMessage('正在讀取雲端資料')
+      }
+      if (!nextSession) {
+        setIsRemoteAdmin(false)
+        setIsDataLoading(false)
+        setSyncMessage('請登入以讀取雲端資料')
+      }
+    })
+
+    return () => {
+      isMounted = false
+      data.subscription.unsubscribe()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!supabase || !session) return
+
+    let isMounted = true
+
+    Promise.all([loadTravelData(), checkIsAdmin(session.user.id)])
+      .then(([remoteData, isAdmin]) => {
+        if (!isMounted) return
+
+        setIsRemoteAdmin(isAdmin)
+
+        if (remoteData) {
+          skipNextRemoteSave.current = true
+          setAppData(remoteData)
+          setSyncMessage('已載入雲端資料')
+          return
+        }
+
+        setSyncMessage(
+          isAdmin
+            ? '雲端尚未建立資料，第一次修改後會建立'
+            : '雲端尚未建立資料，請先請管理者初始化',
+        )
+      })
+      .catch((error: Error) => {
+        if (!isMounted) return
+        setSyncMessage(`雲端讀取失敗：${error.message}`)
+      })
+      .finally(() => {
+        if (isMounted) setIsDataLoading(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [session])
+
   const handleInstallApp = async () => {
     if (!deferredPrompt) return
 
@@ -194,6 +276,14 @@ function App() {
     }
   }
 
+  const handleSignOut = async () => {
+    if (!supabase) return
+
+    await supabase.auth.signOut()
+    setSession(null)
+    setIsRemoteAdmin(false)
+  }
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(OWNER_ACCESS_KEY, ownerAccess)
@@ -201,6 +291,11 @@ function App() {
   }, [ownerAccess])
 
   const unlockOwnerAccess = () => {
+    if (isSupabaseConfigured) {
+      window.alert('這個版本使用登入帳號管理權限，請在 Supabase 的 app_admins 表加入管理者。')
+      return
+    }
+
     if (ownerCodeInput.trim() === OWNER_ACCESS_CODE) {
       setOwnerAccess('owner')
       setShowOwnerGate(false)
@@ -212,6 +307,11 @@ function App() {
   }
 
   const exitOwnerAccess = () => {
+    if (isSupabaseConfigured) {
+      void handleSignOut()
+      return
+    }
+
     setOwnerAccess('guest')
     setShowOwnerGate(true)
   }
@@ -233,9 +333,34 @@ function App() {
   const [noteDraft, setNoteDraft] = useState<NoteItem | null>(null)
 
   useEffect(() => {
-    setTripDraft(appData.trip)
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(appData))
-  }, [appData])
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(appData))
+    }
+
+    if (!isSupabaseConfigured || !session || !canEdit || isDataLoading) return
+
+    if (skipNextRemoteSave.current) {
+      skipNextRemoteSave.current = false
+      return
+    }
+
+    const saveTimer = window.setTimeout(() => {
+      setSyncMessage('正在儲存到雲端')
+      saveTravelData(appData)
+        .then(() => {
+          const savedAt = new Date().toLocaleTimeString('zh-TW', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+          setSyncMessage(`雲端已儲存 ${savedAt}`)
+        })
+        .catch((error: Error) => {
+          setSyncMessage(`雲端儲存失敗：${error.message}`)
+        })
+    }, 700)
+
+    return () => window.clearTimeout(saveTimer)
+  }, [appData, canEdit, isDataLoading, session])
 
   const selectedDay =
     appData.itineraryDays[selectedDayIndex] ?? appData.itineraryDays[0]
@@ -547,14 +672,42 @@ function App() {
     setNoteDraft(null)
   }
 
+  if (isSupabaseConfigured && isAuthLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f5f0ea] text-[#4b5563]">
+        <div className="flex items-center gap-3 rounded-[24px] bg-[#fffdfa] px-5 py-4 shadow-sm ring-1 ring-[#eadfd8]">
+          <Loader2 size={20} className="animate-spin text-[#d74d4d]" />
+          <span className="text-sm font-medium">正在確認登入狀態</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (isSupabaseConfigured && !session) {
+    return <LoginPage />
+  }
+
+  if (isSupabaseConfigured && isDataLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f5f0ea] text-[#4b5563]">
+        <div className="flex items-center gap-3 rounded-[24px] bg-[#fffdfa] px-5 py-4 shadow-sm ring-1 ring-[#eadfd8]">
+          <Loader2 size={20} className="animate-spin text-[#d74d4d]" />
+          <span className="text-sm font-medium">正在載入旅遊資料</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="app-shell min-h-screen bg-[#f5f0ea] text-slate-800">
       <div className="mx-auto flex max-w-7xl gap-4 p-3 sm:p-5">
         <aside className="hidden w-72 shrink-0 rounded-[28px] border border-[#eadfd8] bg-[#fffdfa] p-5 shadow-[0_18px_45px_rgba(90,67,53,0.08)] lg:flex lg:flex-col">
           <div
             className="mb-8 flex items-center gap-3"
-            onDoubleClick={() => setShowOwnerGate(true)}
-            title="管理者入口"
+            onDoubleClick={() => {
+              if (!isSupabaseConfigured) setShowOwnerGate(true)
+            }}
+            title={isSupabaseConfigured ? '登入帳號' : '管理者入口'}
           >
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d74d4d] text-lg font-bold text-white">
               T
@@ -587,7 +740,27 @@ function App() {
           </nav>
 
           <div className="mt-4 space-y-2">
-            {canEdit ? (
+            {isSupabaseConfigured ? (
+              <>
+                <div className="rounded-2xl border border-[#ead7d0] bg-[#fff8f6] px-4 py-3 text-sm text-[#524743]">
+                  <div className="flex items-center gap-2 font-medium">
+                    <ShieldCheck size={16} />
+                    {canEdit ? '管理者帳號' : '觀看者帳號'}
+                  </div>
+                  <div className="mt-1 truncate text-xs text-[#7a6a62]">
+                    {session?.user.email}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#ead7d0] bg-white px-4 py-3 text-sm font-medium text-[#524743]"
+                >
+                  <LogOut size={16} />
+                  登出
+                </button>
+              </>
+            ) : canEdit ? (
               <button
                 type="button"
                 onClick={exitOwnerAccess}
@@ -642,6 +815,19 @@ function App() {
         </aside>
 
         <main className="flex-1 pb-24 lg:pb-0">
+          {isSupabaseConfigured && (
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[#eadfd8] bg-[#fffdfa] px-4 py-3 text-sm text-[#4b5563] shadow-sm">
+              <div className="flex min-w-0 items-center gap-2">
+                <Database size={17} className="shrink-0 text-[#d74d4d]" />
+                <span className="truncate">{syncMessage}</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-full bg-[#f7f2ee] px-3 py-1 text-xs font-medium text-[#6b5d56]">
+                <ShieldCheck size={14} />
+                {canEdit ? '管理者可編輯' : '觀看者唯讀'}
+              </div>
+            </div>
+          )}
+
           {activePage === 'home' && (
             <div className="space-y-4">
               <section className="rounded-[30px] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.9),_rgba(245,220,216,0.8))] p-5 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-6">
@@ -673,11 +859,11 @@ function App() {
                       </button>
                       <button
                         type="button"
-                        onClick={exitOwnerAccess}
+                        onClick={isSupabaseConfigured ? handleSignOut : exitOwnerAccess}
                         className="inline-flex items-center gap-2 rounded-full border border-[#ead7d0] bg-white/60 px-3 py-1.5 text-xs font-medium text-[#524743]"
                       >
-                        <RefreshCcw size={14} />
-                        退出管理者
+                        {isSupabaseConfigured ? <LogOut size={14} /> : <RefreshCcw size={14} />}
+                        {isSupabaseConfigured ? '登出' : '退出管理者'}
                       </button>
                     </div>
                   )}

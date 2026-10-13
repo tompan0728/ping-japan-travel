@@ -1,5 +1,31 @@
 # React + TypeScript + Vite
 
+## Supabase setup
+
+This app can run as a shared travel PWA with Supabase Auth and a single JSON document in Postgres.
+
+1. Create a Supabase project.
+2. In Supabase SQL Editor, run `supabase/schema.sql`.
+3. Create your first user in Authentication, then copy the user's UUID.
+4. Run this SQL with that UUID:
+
+```sql
+insert into public.app_admins (user_id)
+values ('YOUR_AUTH_USER_ID')
+on conflict (user_id) do nothing;
+```
+
+5. Copy `.env.example` to `.env.local` and fill in:
+
+```bash
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
+```
+
+6. Add the same two variables in Vercel Project Settings > Environment Variables.
+
+Authenticated users can read the travel data. Users listed in `app_admins` can edit and save it.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
