@@ -24,7 +24,7 @@ VITE_SUPABASE_ANON_KEY=...
 
 6. Add the same two variables in Vercel Project Settings > Environment Variables.
 
-Authenticated users can read the travel data. Users listed in `app_admins` can edit and save it.
+Anyone can read the travel data. Users listed in `app_admins` can sign in, edit, and save it.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

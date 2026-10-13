@@ -217,8 +217,8 @@ function App() {
       }
       if (!nextSession) {
         setIsRemoteAdmin(false)
-        setIsDataLoading(false)
-        setSyncMessage('請登入以讀取雲端資料')
+        setIsDataLoading(true)
+        setSyncMessage('正在讀取公開行程')
       }
     })
 
@@ -229,27 +229,31 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (!supabase || !session) return
+    if (!supabase || isAuthLoading) return
 
     let isMounted = true
 
-    Promise.all([loadTravelData(), checkIsAdmin(session.user.id)])
+    Promise.all([
+      loadTravelData(),
+      session ? checkIsAdmin(session.user.id) : Promise.resolve(false),
+    ])
       .then(([remoteData, isAdmin]) => {
         if (!isMounted) return
 
         setIsRemoteAdmin(isAdmin)
+        if (isAdmin) setShowOwnerGate(false)
 
         if (remoteData) {
           skipNextRemoteSave.current = true
           setAppData(remoteData)
-          setSyncMessage('已載入雲端資料')
+          setSyncMessage(session ? '已載入雲端資料' : '已載入公開行程')
           return
         }
 
         setSyncMessage(
           isAdmin
             ? '雲端尚未建立資料，第一次修改後會建立'
-            : '雲端尚未建立資料，請先請管理者初始化',
+            : '雲端尚未建立資料，暫時顯示本機範例',
         )
       })
       .catch((error: Error) => {
@@ -263,7 +267,7 @@ function App() {
     return () => {
       isMounted = false
     }
-  }, [session])
+  }, [isAuthLoading, session])
 
   const handleInstallApp = async () => {
     if (!deferredPrompt) return
@@ -683,10 +687,6 @@ function App() {
     )
   }
 
-  if (isSupabaseConfigured && !session) {
-    return <LoginPage />
-  }
-
   if (isSupabaseConfigured && isDataLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f5f0ea] text-[#4b5563]">
@@ -740,7 +740,7 @@ function App() {
           </nav>
 
           <div className="mt-4 space-y-2">
-            {isSupabaseConfigured ? (
+            {isSupabaseConfigured && session ? (
               <>
                 <div className="rounded-2xl border border-[#ead7d0] bg-[#fff8f6] px-4 py-3 text-sm text-[#524743]">
                   <div className="flex items-center gap-2 font-medium">
@@ -760,6 +760,15 @@ function App() {
                   登出
                 </button>
               </>
+            ) : isSupabaseConfigured ? (
+              <button
+                type="button"
+                onClick={() => setShowOwnerGate(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d74d4d] px-4 py-3 text-sm font-medium text-white shadow-sm"
+              >
+                <ShieldCheck size={16} />
+                管理者登入
+              </button>
             ) : canEdit ? (
               <button
                 type="button"
@@ -1514,7 +1523,13 @@ function App() {
         </div>
       </nav>
 
-      {showOwnerGate && (
+      {showOwnerGate && isSupabaseConfigured && !session && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
+          <LoginPage onCancel={() => setShowOwnerGate(false)} />
+        </div>
+      )}
+
+      {showOwnerGate && !isSupabaseConfigured && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
           <div className="w-full max-w-md rounded-[30px] bg-white p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">

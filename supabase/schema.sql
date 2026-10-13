@@ -13,10 +13,11 @@ alter table public.travel_app_documents enable row level security;
 alter table public.app_admins enable row level security;
 
 drop policy if exists "Authenticated users can read travel data" on public.travel_app_documents;
-create policy "Authenticated users can read travel data"
+drop policy if exists "Anyone can read travel data" on public.travel_app_documents;
+create policy "Anyone can read travel data"
   on public.travel_app_documents
   for select
-  to authenticated
+  to anon, authenticated
   using (true);
 
 drop policy if exists "Admins can insert travel data" on public.travel_app_documents;
