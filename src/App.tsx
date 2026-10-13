@@ -732,7 +732,7 @@ function App() {
 
         </aside>
 
-        <main className="flex-1 pb-24 lg:pb-0">
+        <main className="min-w-0 flex-1 pb-24 lg:pb-0">
           {isSupabaseConfigured && (
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-[#c7dce8] bg-[#fbfdff] px-4 py-3 text-sm text-[#3e586d] shadow-sm">
               <div className="flex min-w-0 items-center gap-2">
