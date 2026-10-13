@@ -11,18 +11,16 @@ import {
   Home,
   Loader2,
   LogOut,
-  MapPinned,
   NotebookPen,
   Plane,
   Plus,
   RefreshCcw,
+  Settings,
   Search,
   ShieldCheck,
-  ShoppingBag,
   Sparkles,
   Star,
   Trash2,
-  UtensilsCrossed,
   X,
 } from 'lucide-react'
 import type { Session } from '@supabase/supabase-js'
@@ -30,7 +28,6 @@ import type {
   ItineraryItem,
   NoteItem,
   PageKey,
-  PlaceCategory,
   Restaurant,
   ShoppingItem,
   TravelAppData,
@@ -65,11 +62,9 @@ const buildSampleData = (): TravelAppData => ({
 const navItems: Array<{ key: PageKey; label: string; icon: typeof Home }> = [
   { key: 'home', label: '首頁', icon: Home },
   { key: 'itinerary', label: '行程', icon: CalendarDays },
-  { key: 'map', label: '地圖', icon: MapPinned },
-  { key: 'shopping', label: '購物', icon: ShoppingBag },
-  { key: 'food', label: '美食', icon: UtensilsCrossed },
   { key: 'info', label: '資訊', icon: Plane },
   { key: 'notes', label: '備忘', icon: NotebookPen },
+  { key: 'settings', label: '設定', icon: Settings },
 ]
 
 type BeforeInstallPromptEvent = Event & {
@@ -323,7 +318,7 @@ function App() {
   const [activePage, setActivePage] = useState<PageKey>('home')
   const [selectedDayIndex, setSelectedDayIndex] = useState(0)
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null)
-  const [mapFilter, setMapFilter] = useState<'全部' | PlaceCategory>('全部')
+  const [infoCategory, setInfoCategory] = useState<'旅遊資訊' | '美食' | '購物'>('旅遊資訊')
   const [shoppingStatusFilter, setShoppingStatusFilter] = useState<'全部' | '待購買' | '已購買'>('全部')
   const [shoppingRegionFilter, setShoppingRegionFilter] = useState('全部')
   const [restaurantFilter, setRestaurantFilter] = useState('全部')
@@ -377,23 +372,6 @@ function App() {
     day: 'numeric',
     weekday: 'short',
   })
-
-  const filteredPlaces = useMemo(() => {
-    const next =
-      mapFilter === '全部'
-        ? appData.places
-        : appData.places.filter((place) => place.category === mapFilter)
-
-    return next
-  }, [appData.places, mapFilter])
-
-  const shoppingSummaries = useMemo(() => {
-    const budget = appData.shoppingItems.reduce((sum, item) => sum + item.budget, 0)
-    const spent = appData.shoppingItems.reduce((sum, item) => sum + item.actualPrice, 0)
-    const remaining = appData.shoppingItems.filter((item) => item.status !== '已購買').length
-
-    return { budget, spent, remaining }
-  }, [appData.shoppingItems])
 
   const filteredRestaurants = useMemo(() => {
     return appData.restaurants.filter((item) => {
@@ -740,55 +718,6 @@ function App() {
           </nav>
 
           <div className="mt-4 space-y-2">
-            {isSupabaseConfigured && session ? (
-              <>
-                <div className="rounded-2xl border border-[#ead7d0] bg-[#fff8f6] px-4 py-3 text-sm text-[#524743]">
-                  <div className="flex items-center gap-2 font-medium">
-                    <ShieldCheck size={16} />
-                    {canEdit ? '管理者帳號' : '觀看者帳號'}
-                  </div>
-                  <div className="mt-1 truncate text-xs text-[#7a6a62]">
-                    {session?.user.email}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#ead7d0] bg-white px-4 py-3 text-sm font-medium text-[#524743]"
-                >
-                  <LogOut size={16} />
-                  登出
-                </button>
-              </>
-            ) : isSupabaseConfigured ? (
-              <button
-                type="button"
-                onClick={() => setShowOwnerGate(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d74d4d] px-4 py-3 text-sm font-medium text-white shadow-sm"
-              >
-                <ShieldCheck size={16} />
-                管理者登入
-              </button>
-            ) : canEdit ? (
-              <button
-                type="button"
-                onClick={exitOwnerAccess}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-[#ead7d0] bg-[#fff8f6] px-4 py-3 text-sm font-medium text-[#524743]"
-              >
-                <ShieldCheck size={16} />
-                退出管理者
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowOwnerGate(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#d74d4d] px-4 py-3 text-sm font-medium text-white shadow-sm"
-              >
-                <ShieldCheck size={16} />
-                管理者模式
-              </button>
-            )}
-
             {deferredPrompt && (
               <button
                 type="button"
@@ -1004,9 +933,9 @@ function App() {
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   {[
                     ['行程管理', 'itinerary'],
-                    ['地點地圖', 'map'],
-                    ['購物清單', 'shopping'],
-                    ['美食清單', 'food'],
+                    ['旅遊資訊', 'info'],
+                    ['旅行備忘', 'notes'],
+                    ['管理者設定', 'settings'],
                   ].map(([label, key]) => (
                     <button
                       key={key}
@@ -1141,82 +1070,28 @@ function App() {
             </div>
           )}
 
-          {activePage === 'map' && (
-            <div className="space-y-4">
-              <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#85736d]">地點總覽</div>
-                    <h2 className="text-2xl font-semibold text-[#1f2937]">Map</h2>
-                  </div>
-                </div>
-
-                <div className="mb-4 flex flex-wrap gap-2">
-                  {['全部', '景點', '美食', '購物', '飯店', '其他'].map((category) => (
-                    <button
-                      key={category}
-                      type="button"
-                      onClick={() => setMapFilter(category as '全部' | PlaceCategory)}
-                      className={`rounded-full px-3 py-1.5 text-sm ${
-                        mapFilter === category
-                          ? 'bg-[#d74d4d] text-white'
-                          : 'bg-[#f6f0ee] text-[#4b5563]'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="overflow-hidden rounded-[30px] border border-[#f0dfd7] bg-[radial-gradient(circle_at_25%_20%,_rgba(255,220,194,0.45),_transparent_25%),linear-gradient(135deg,#f7f1ee,#f3f6f9)] p-4">
-                  <div className="relative h-52 rounded-[26px] bg-white/60 shadow-inner ring-1 ring-[#f0e5e0]">
-                    <div className="absolute left-[12%] top-[18%] h-12 w-12 rounded-full border-4 border-[#d74d4d] bg-white/80" />
-                    <div className="absolute right-[18%] top-[20%] h-10 w-10 rounded-full border-4 border-[#6f8bff] bg-white/80" />
-                    <div className="absolute left-[44%] top-[42%] h-10 w-10 rounded-full border-4 border-[#77bf93] bg-white/80" />
-                    <div className="absolute left-[60%] top-[62%] h-10 w-10 rounded-full border-4 border-[#d98c52] bg-white/80" />
-                    <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,transparent_40%,rgba(148,163,184,0.12)_40%,rgba(148,163,184,0.12)_41%,transparent_41%),linear-gradient(0deg,transparent_0%,transparent_60%,rgba(148,163,184,0.1)_60%,rgba(148,163,184,0.1)_61%,transparent_61%)]" />
-                    <div className="absolute inset-x-4 bottom-3 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.08em] text-[#5f6d7a]">
-                      <span>東京市</span>
-                      <span>示意地圖</span>
-                      <span>交通路線</span>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
-                <div className="space-y-3">
-                  {filteredPlaces.map((place) => (
-                    <div key={place.id} className="rounded-[24px] border border-[#f0e6df] bg-white p-3 shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className={`inline-flex rounded-full px-2 py-1 text-[10px] font-medium ${place.color}`}>{place.category}</div>
-                          <div className="mt-2 text-base font-semibold text-[#1f2937]">{place.name}</div>
-                          <div className="mt-1 text-xs text-[#6b7280]">{place.area} · {place.address}</div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActivePage('itinerary')
-                            setSelectedDayIndex(0)
-                          }}
-                          className="rounded-full bg-[#fff3f1] px-2.5 py-1.5 text-xs font-medium text-[#b23b3b]"
-                        >
-                          查看行程
-                        </button>
-                      </div>
-                      <p className="mt-2 text-sm text-[#4b5563]">{place.notes}</p>
-                      <div className="mt-3 flex gap-2">
-                        <a href={place.link} target="_blank" rel="noreferrer" className="rounded-full bg-[#d74d4d] px-3 py-2 text-xs font-medium text-white">開啟 Google Maps</a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
+          {activePage === 'info' && (
+            <div className="mb-4 flex flex-wrap gap-2 rounded-[24px] border border-[#eadfd8] bg-[#fffdfa] p-2 shadow-sm">
+              {(['旅遊資訊', '美食', '購物'] as const).map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => setInfoCategory(category)}
+                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                    infoCategory === category
+                      ? 'bg-[#d74d4d] text-white'
+                      : 'bg-[#f7f1ee] text-[#4b5563] hover:bg-[#fff0ed]'
+                  }`}
+                >
+                  {category}
+                  {category === '美食' && ` (${appData.restaurants.length})`}
+                  {category === '購物' && ` (${appData.shoppingItems.length})`}
+                </button>
+              ))}
             </div>
           )}
 
-          {activePage === 'shopping' && (
+          {activePage === 'info' && infoCategory === '購物' && (
             <div className="space-y-4">
               <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
                 <div className="mb-4 flex items-center justify-between">
@@ -1234,21 +1109,6 @@ function App() {
                       新增項目
                     </button>
                   )}
-                </div>
-
-                <div className="mb-4 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl bg-[#fff5f3] p-3">
-                    <div className="text-[11px] uppercase tracking-[0.08em] text-[#8d7e76]">預算總額</div>
-                    <div className="mt-2 text-lg font-semibold text-[#1f2937]">{formatYen(shoppingSummaries.budget)}</div>
-                  </div>
-                  <div className="rounded-2xl bg-[#f1f7f3] p-3">
-                    <div className="text-[11px] uppercase tracking-[0.08em] text-[#8d7e76]">實際花費</div>
-                    <div className="mt-2 text-lg font-semibold text-[#1f2937]">{formatYen(shoppingSummaries.spent)}</div>
-                  </div>
-                  <div className="rounded-2xl bg-[#faf6ef] p-3">
-                    <div className="text-[11px] uppercase tracking-[0.08em] text-[#8d7e76]">未購買</div>
-                    <div className="mt-2 text-lg font-semibold text-[#1f2937]">{shoppingSummaries.remaining} 項</div>
-                  </div>
                 </div>
 
                 <div className="mb-4 flex flex-wrap gap-2">
@@ -1319,7 +1179,7 @@ function App() {
             </div>
           )}
 
-          {activePage === 'food' && (
+          {activePage === 'info' && infoCategory === '美食' && (
             <div className="space-y-4">
               <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
                 <div className="mb-4 flex items-center justify-between gap-3">
@@ -1409,7 +1269,7 @@ function App() {
             </div>
           )}
 
-          {activePage === 'info' && (
+          {activePage === 'info' && infoCategory === '旅遊資訊' && (
             <div className="space-y-4">
               <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-4 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-5">
                 <div className="mb-4 flex items-center justify-between">
@@ -1446,6 +1306,69 @@ function App() {
                     </div>
                   ))}
                 </div>
+              </section>
+            </div>
+          )}
+
+          {activePage === 'settings' && (
+            <div className="space-y-4">
+              <section className="rounded-[30px] border border-[#efdcd5] bg-[#fffdfa] p-5 shadow-[0_18px_35px_rgba(96,63,55,0.08)] sm:p-6">
+                <div className="mb-5">
+                  <div className="text-[11px] uppercase tracking-[0.12em] text-[#85736d]">帳號與權限</div>
+                  <h2 className="text-2xl font-semibold text-[#1f2937]">設定</h2>
+                </div>
+
+                {isSupabaseConfigured && session ? (
+                  <div className="flex flex-col gap-4 rounded-[24px] border border-[#f0e6df] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 font-semibold text-[#1f2937]">
+                        <ShieldCheck size={18} className="text-[#3d8d57]" />
+                        {canEdit ? '管理者已登入' : '目前帳號沒有管理權限'}
+                      </div>
+                      <p className="mt-1 text-sm text-[#6b7280]">{session.user.email}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-[#ead7d0] px-4 py-2.5 text-sm font-medium text-[#524743]"
+                    >
+                      <LogOut size={16} />
+                      登出
+                    </button>
+                  </div>
+                ) : isSupabaseConfigured ? (
+                  <div className="rounded-[24px] border border-[#f0e6df] bg-white p-4">
+                    <p className="mb-4 text-sm leading-6 text-[#6b7280]">
+                      訪客可以直接查看行程；只有管理者需要登入以編輯共享資料。
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowOwnerGate(true)}
+                      className="inline-flex items-center justify-center gap-2 rounded-full bg-[#d74d4d] px-5 py-3 text-sm font-semibold text-white shadow-sm"
+                    >
+                      <ShieldCheck size={17} />
+                      管理者登入
+                    </button>
+                  </div>
+                ) : (
+                  <div className="rounded-[24px] border border-[#f0e6df] bg-white p-4">
+                    <p className="mb-4 text-sm leading-6 text-[#6b7280]">
+                      {canEdit ? '目前使用本機管理者模式。' : '訪客可以查看行程；管理者模式可編輯本機資料。'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={canEdit ? exitOwnerAccess : () => setShowOwnerGate(true)}
+                      className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold ${
+                        canEdit
+                          ? 'border border-[#ead7d0] text-[#524743]'
+                          : 'bg-[#d74d4d] text-white shadow-sm'
+                      }`}
+                    >
+                      <ShieldCheck size={17} />
+                      {canEdit ? '退出管理者' : '管理者登入'}
+                    </button>
+                  </div>
+                )}
               </section>
             </div>
           )}

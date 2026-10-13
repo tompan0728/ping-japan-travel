@@ -1,4 +1,4 @@
-export type PageKey = 'home' | 'itinerary' | 'map' | 'shopping' | 'food' | 'info' | 'notes'
+export type PageKey = 'home' | 'itinerary' | 'info' | 'notes' | 'settings'
 
 export type PlaceCategory = '景點' | '美食' | '購物' | '飯店' | '其他'
 
