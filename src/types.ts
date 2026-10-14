@@ -41,6 +41,7 @@ export interface Place {
   area: string
   address: string
   notes: string
+  imagePath?: string
   link: string
   color: string
 }

@@ -26,13 +26,23 @@ VITE_SUPABASE_ANON_KEY=...
 
 Anyone can read the travel data. Users listed in `app_admins` can sign in, edit, and save it.
 
+The Information page includes a sights list. Admins can create and reorder sights, add a
+description and upload a JPG, PNG, or WebP cover image (up to 5 MB). Sight image files are stored
+in the public `travel-place-images` Supabase Storage bucket; only `app_admins` users can upload,
+replace, or delete files. Since images are public, anyone with an image URL can view them.
+
+To enable image uploads on an existing project, run the updated `supabase/schema.sql` in the
+Supabase SQL Editor. The script creates the bucket and its Storage policies. Image files are
+stored separately from the JSON travel document; removing an image from a sight hides its image
+but does not automatically remove the old Storage object.
+
 While the page is visible, guests check for updated travel data once per minute. The refresh
 button in the sync bar can also fetch the latest version immediately. The app uses polling
 rather than Supabase Realtime, so no additional database publication setup is required.
 
-Admins can reorder itinerary items and the travel information, restaurant, and shopping lists
-with the drag handles; changes use the existing automatic save flow. Travel information entries
-expand when selected, and restaurant map links search by the restaurant name and location.
+Admins can reorder itinerary items and the travel information, sights, restaurant, and shopping
+lists with the drag handles; changes use the existing automatic save flow. Travel information
+entries expand when selected, and restaurant map links search by the restaurant name and location.
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

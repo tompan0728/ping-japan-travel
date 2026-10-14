@@ -18,8 +18,10 @@ import {
   Database,
   Hotel,
   Home,
+  ImagePlus,
   Loader2,
   LogOut,
+  MapPin,
   NotebookPen,
   Plane,
   Plus,
@@ -38,6 +40,7 @@ import type {
   ItineraryItem,
   NoteItem,
   PageKey,
+  Place,
   Restaurant,
   ShoppingItem,
   TravelAppData,
@@ -64,6 +67,8 @@ const STORAGE_KEY = 'tokyo-trip-app-v2'
 const LEGACY_STORAGE_KEY = 'tokyo-trip-app-v1'
 const OWNER_ACCESS_KEY = 'tokyo-trip-owner-access'
 const OWNER_ACCESS_CODE = 'tompan'
+const PLACE_IMAGES_BUCKET = 'travel-place-images'
+const MAX_PLACE_IMAGE_SIZE = 5 * 1024 * 1024
 
 const buildSampleData = (): TravelAppData => ({
   trip: tripSample,
@@ -102,6 +107,38 @@ const restaurantMapsLink = (restaurant: Restaurant) => {
     .join(' ')
 
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}
+const placeImageUrl = (imagePath: string) =>
+  supabase?.storage.from(PLACE_IMAGES_BUCKET).getPublicUrl(imagePath).data.publicUrl ?? ''
+
+function PlaceImage({
+  src,
+  alt,
+  className,
+}: {
+  src: string
+  alt: string
+  className: string
+}) {
+  const [failedSrc, setFailedSrc] = useState('')
+
+  if (!src || failedSrc === src) {
+    return (
+      <div className={`${className} flex flex-col items-center justify-center gap-1 bg-[#eef5f8] text-[#7b95a6]`}>
+        <ImagePlus size={22} />
+        <span className="text-[10px]">{src ? '圖片無法載入' : '尚無圖片'}</span>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onError={() => setFailedSrc(src)}
+      className={`${className} object-cover`}
+    />
+  )
 }
 
 const emptyItineraryItem = (): ItineraryItem => ({
@@ -142,6 +179,17 @@ const emptyRestaurant = (): Restaurant => ({
   notes: '',
   favorite: false,
   confirmed: false,
+})
+
+const emptyPlace = (): Place => ({
+  id: createId(),
+  name: '',
+  category: '景點',
+  area: '',
+  address: '',
+  notes: '',
+  link: '',
+  color: 'bg-rose-100 text-rose-700',
 })
 
 const emptyInfoItem = (): TravelInfoItem => ({
@@ -382,7 +430,7 @@ function App() {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0)
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null)
   const [expandedTravelInfoId, setExpandedTravelInfoId] = useState<string | null>(null)
-  const [infoCategory, setInfoCategory] = useState<'旅遊資訊' | '美食' | '購物'>('旅遊資訊')
+  const [infoCategory, setInfoCategory] = useState<'旅遊資訊' | '景點' | '美食' | '購物'>('旅遊資訊')
   const [shoppingStatusFilter, setShoppingStatusFilter] = useState<'全部' | '待購買' | '已購買'>('全部')
   const [shoppingRegionFilter, setShoppingRegionFilter] = useState('全部')
   const [restaurantFilter, setRestaurantFilter] = useState('全部')
@@ -392,12 +440,27 @@ function App() {
   const [itineraryDraft, setItineraryDraft] = useState<ItineraryItem | null>(null)
   const [shoppingDraft, setShoppingDraft] = useState<ShoppingItem | null>(null)
   const [restaurantDraft, setRestaurantDraft] = useState<Restaurant | null>(null)
+  const [placeDraft, setPlaceDraft] = useState<Place | null>(null)
+  const [placeImageFile, setPlaceImageFile] = useState<File | null>(null)
+  const [placeImagePreviewUrl, setPlaceImagePreviewUrl] = useState('')
+  const placeImagePreviewUrlRef = useRef<string | null>(null)
+  const [placeImageError, setPlaceImageError] = useState('')
+  const [isUploadingPlaceImage, setIsUploadingPlaceImage] = useState(false)
   const [travelInfoDraft, setTravelInfoDraft] = useState<TravelInfoItem | null>(null)
   const [noteDraft, setNoteDraft] = useState<NoteItem | null>(null)
   const refreshLockRef = useRef(false)
   const refreshTravelDataRef = useRef<(manual?: boolean) => Promise<void>>(async () => {})
   const remoteSavePendingRef = useRef(false)
   const remoteSaveRevisionRef = useRef(0)
+
+  useEffect(
+    () => () => {
+      if (placeImagePreviewUrlRef.current) {
+        URL.revokeObjectURL(placeImagePreviewUrlRef.current)
+      }
+    },
+    [],
+  )
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -564,6 +627,11 @@ function App() {
           (shoppingRegionFilter === '全部' || item.area === shoppingRegionFilter),
       ),
     [appData.shoppingItems, shoppingRegionFilter, shoppingStatusFilter],
+  )
+
+  const scenicPlaces = useMemo(
+    () => appData.places.filter((place) => place.category === '景點'),
+    [appData.places],
   )
 
   const saveTripInfo = () => {
@@ -752,6 +820,121 @@ function App() {
         String(over.id),
       ),
     }))
+  }
+
+  const reorderPlaces = ({ active, over }: DragEndEvent) => {
+    if (!canEdit || !over || active.id === over.id) return
+
+    setAppData((previous) => ({
+      ...previous,
+      places: reorderVisibleItems(
+        previous.places,
+        scenicPlaces,
+        String(active.id),
+        String(over.id),
+      ),
+    }))
+  }
+
+  const clearPlaceImageSelection = () => {
+    if (placeImagePreviewUrlRef.current) {
+      URL.revokeObjectURL(placeImagePreviewUrlRef.current)
+      placeImagePreviewUrlRef.current = null
+    }
+    setPlaceImagePreviewUrl('')
+    setPlaceImageFile(null)
+  }
+
+  const savePlace = async () => {
+    if (!canEdit) {
+      setShowOwnerGate(true)
+      return
+    }
+
+    if (!placeDraft) return
+    const storageClient = supabase
+
+    const name = placeDraft.name.trim()
+    if (!name) {
+      setPlaceImageError('請先填寫景點名稱。')
+      return
+    }
+
+    if (placeImageFile && (!storageClient || !session)) {
+      setPlaceImageError('上傳景點圖片需要 Supabase 管理者登入，請先確認登入狀態與 Storage 設定。')
+      return
+    }
+
+    setIsUploadingPlaceImage(true)
+    setPlaceImageError('')
+
+    try {
+      let imagePath = placeDraft.imagePath
+
+      if (placeImageFile) {
+        if (!storageClient) throw new Error('Supabase 尚未設定，無法上傳圖片。')
+
+        const { error } = await storageClient.storage
+          .from(PLACE_IMAGES_BUCKET)
+          .upload(`places/${placeDraft.id}/cover`, placeImageFile, {
+            cacheControl: '60',
+            contentType: placeImageFile.type,
+            upsert: true,
+          })
+        if (error) throw error
+        imagePath = `places/${placeDraft.id}/cover`
+      }
+
+      const normalized: Place = {
+        ...placeDraft,
+        name,
+        category: '景點',
+        area: placeDraft.area.trim(),
+        address: placeDraft.address.trim(),
+        notes: placeDraft.notes.trim(),
+        link: placeDraft.link.trim() || googleMapsLink(placeDraft.address.trim() || name),
+        imagePath,
+      }
+
+      setAppData((previous) => ({
+        ...previous,
+        places: previous.places.some((place) => place.id === normalized.id)
+          ? previous.places.map((place) => place.id === normalized.id ? normalized : place)
+          : [normalized, ...previous.places],
+      }))
+      setPlaceDraft(null)
+      clearPlaceImageSelection()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      setPlaceImageError(`景點儲存失敗：${message}`)
+    } finally {
+      setIsUploadingPlaceImage(false)
+    }
+  }
+
+  const handlePlaceImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      clearPlaceImageSelection()
+      setPlaceImageError('圖片格式僅支援 JPG、PNG 或 WebP。')
+      return
+    }
+
+    if (file.size > MAX_PLACE_IMAGE_SIZE) {
+      clearPlaceImageSelection()
+      setPlaceImageError('圖片大小不可超過 5 MB。')
+      return
+    }
+
+    clearPlaceImageSelection()
+    const previewUrl = URL.createObjectURL(file)
+    placeImagePreviewUrlRef.current = previewUrl
+    setPlaceImagePreviewUrl(previewUrl)
+    setPlaceImageFile(file)
+    setPlaceImageError('')
   }
 
   const saveShoppingItem = () => {
@@ -1281,7 +1464,7 @@ function App() {
 
           {activePage === 'info' && (
             <div className="mb-4 flex flex-wrap gap-2 rounded-[24px] border border-[#c7dce8] bg-[#fbfdff] p-2 shadow-sm">
-              {(['旅遊資訊', '美食', '購物'] as const).map((category) => (
+              {(['旅遊資訊', '景點', '美食', '購物'] as const).map((category) => (
                 <button
                   key={category}
                   type="button"
@@ -1293,10 +1476,133 @@ function App() {
                   }`}
                 >
                   {category}
+                  {category === '景點' && ` (${scenicPlaces.length})`}
                   {category === '美食' && ` (${appData.restaurants.length})`}
                   {category === '購物' && ` (${appData.shoppingItems.length})`}
                 </button>
               ))}
+            </div>
+          )}
+
+          {activePage === 'info' && infoCategory === '景點' && (
+            <div className="space-y-4">
+              <section className="rounded-[30px] border border-[#c7dce8] bg-[#fbfdff] p-4 shadow-[0_18px_35px_rgba(28,74,105,0.10)] sm:p-5">
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] uppercase tracking-[0.12em] text-[#658093]">旅程亮點</div>
+                    <h2 className="text-2xl font-semibold text-[#173b59]">景點</h2>
+                  </div>
+                  {canEdit && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        clearPlaceImageSelection()
+                        setPlaceImageError('')
+                        setPlaceDraft(emptyPlace())
+                      }}
+                      className="inline-flex items-center gap-2 rounded-full bg-[#176fa5] px-3 py-2 text-sm font-medium text-white"
+                    >
+                      <Plus size={16} />
+                      新增景點
+                    </button>
+                  )}
+                </div>
+
+                {scenicPlaces.length ? (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={reorderPlaces}
+                  >
+                    <SortableContext
+                      items={scenicPlaces.map((place) => place.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-3">
+                        {scenicPlaces.map((place) => (
+                          <SortableItem key={place.id} id={place.id} disabled={!canEdit}>
+                            {(dragHandle) => (
+                              <article className="rounded-[24px] border border-[#dceaf1] bg-white p-4 shadow-sm">
+                                <div className="flex items-start gap-3 sm:gap-4">
+                                  <PlaceImage
+                                    src={place.imagePath ? placeImageUrl(place.imagePath) : ''}
+                                    alt={`${place.name}景點照片`}
+                                    className="h-24 w-28 shrink-0 rounded-2xl sm:h-28 sm:w-36"
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="min-w-0">
+                                        <h3 className="break-words text-base font-semibold text-[#173b59] sm:text-lg">{place.name}</h3>
+                                        {(place.area || place.address) && (
+                                          <div className="mt-1 flex items-start gap-1 text-xs leading-5 text-[#60798b]">
+                                            <MapPin size={13} className="mt-0.5 shrink-0" />
+                                            <span className="break-words">
+                                              {[place.area, place.address].filter(Boolean).join(' · ')}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="mt-4 border-t border-[#e6eff4] pt-3">
+                                  <div className="text-xs font-semibold text-[#284b63]">景點描述</div>
+                                  <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-[#3e586d]">
+                                    {place.notes || '尚未填寫景點特色與旅遊注意事項。'}
+                                  </p>
+                                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                                    <a
+                                      href={place.link || googleMapsLink(place.address || place.name)}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="rounded-full bg-[#176fa5] px-3 py-1.5 text-xs font-medium text-white"
+                                    >
+                                      Google Maps
+                                    </a>
+                                    {canEdit && (
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        {dragHandle}
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            clearPlaceImageSelection()
+                                            setPlaceImageError('')
+                                            setPlaceDraft(place)
+                                          }}
+                                          className="rounded-full bg-[#eaf5fb] px-3 py-1.5 text-xs font-medium text-[#15577f]"
+                                        >
+                                          編輯
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setAppData((previous) => ({
+                                              ...previous,
+                                              places: previous.places.filter((item) => item.id !== place.id),
+                                            }))
+                                          }
+                                          className="rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs font-medium text-[#3e586d]"
+                                        >
+                                          刪除
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </article>
+                            )}
+                          </SortableItem>
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-[#c7dce8] px-4 py-8 text-center text-sm text-[#60798b]">
+                    目前還沒有景點資料。
+                    {canEdit && ' 點選「新增景點」開始建立。'}
+                  </div>
+                )}
+              </section>
             </div>
           )}
 
@@ -1827,6 +2133,119 @@ function App() {
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={() => setItineraryDraft(null)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>
               <button type="button" onClick={updateItineraryItem} className="rounded-full bg-[#176fa5] px-4 py-2 text-sm font-medium text-white">儲存</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {placeDraft && (
+        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto bg-slate-900/30 p-4 sm:items-center">
+          <div className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-[30px] bg-white p-4 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="text-xl font-semibold text-[#173b59]">{appData.places.some((place) => place.id === placeDraft.id) ? '編輯景點' : '新增景點'}</div>
+              <button
+                type="button"
+                onClick={() => {
+                  setPlaceDraft(null)
+                  clearPlaceImageSelection()
+                  setPlaceImageError('')
+                }}
+                className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]"
+                aria-label="關閉景點編輯"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+              <input
+                value={placeDraft.name}
+                onChange={(event) => setPlaceDraft({ ...placeDraft, name: event.target.value })}
+                placeholder="景點名稱"
+                className="h-11 w-full min-w-0 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2"
+              />
+              <input
+                value={placeDraft.area}
+                onChange={(event) => setPlaceDraft({ ...placeDraft, area: event.target.value })}
+                placeholder="地區"
+                className="h-11 w-full min-w-0 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none"
+              />
+              <input
+                value={placeDraft.address}
+                onChange={(event) => setPlaceDraft({ ...placeDraft, address: event.target.value })}
+                placeholder="地址"
+                className="h-11 w-full min-w-0 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none"
+              />
+              <textarea
+                value={placeDraft.notes}
+                onChange={(event) => setPlaceDraft({ ...placeDraft, notes: event.target.value })}
+                placeholder="景點特色、推薦玩法與旅遊注意事項"
+                className="min-h-28 w-full min-w-0 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] p-3 text-sm outline-none sm:col-span-2"
+              />
+              <div className="min-w-0 sm:col-span-2">
+                {(placeImagePreviewUrl || placeDraft.imagePath) && (
+                  <div className="mb-3 flex items-center gap-3 rounded-2xl border border-[#dceaf1] p-3">
+                    <PlaceImage
+                      src={placeImagePreviewUrl || (placeDraft.imagePath ? placeImageUrl(placeDraft.imagePath) : '')}
+                      alt={`${placeDraft.name}景點照片預覽`}
+                      className="h-16 w-20 rounded-xl object-cover"
+                    />
+                    <div className="min-w-0 flex-1 text-sm text-[#3e586d]">
+                      {placeImagePreviewUrl ? '新圖片預覽' : '目前使用的景點圖片'}
+                    </div>
+                    {!placeImagePreviewUrl && placeDraft.imagePath && (
+                      <button
+                        type="button"
+                        onClick={() => setPlaceDraft({ ...placeDraft, imagePath: undefined })}
+                        className="shrink-0 rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs text-[#3e586d]"
+                      >
+                        移除圖片
+                      </button>
+                    )}
+                  </div>
+                )}
+                <label className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-[#bcd4e1] bg-[#f7fafc] p-3 text-sm text-[#284b63]">
+                  <ImagePlus size={20} className="shrink-0 text-[#176fa5]" />
+                  <span className="min-w-0 flex-1 truncate">
+                    {placeImageFile ? placeImageFile.name : '選擇景點圖片（JPG、PNG、WebP，最大 5 MB）'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handlePlaceImageChange}
+                    className="sr-only"
+                  />
+                </label>
+                <p className="mt-2 text-xs leading-5 text-[#71899a]">
+                  圖片會上傳至公開 Supabase Storage，訪客可檢視；只有管理者可以上傳或修改。
+                </p>
+              </div>
+            </div>
+            {placeImageError && (
+              <p role="alert" className="mt-3 rounded-xl bg-[#fff1f0] px-3 py-2 text-sm text-[#b42318]">
+                {placeImageError}
+              </p>
+            )}
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPlaceDraft(null)
+                  clearPlaceImageSelection()
+                  setPlaceImageError('')
+                }}
+                className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]"
+                disabled={isUploadingPlaceImage}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={() => void savePlace()}
+                className="rounded-full bg-[#176fa5] px-4 py-2 text-sm font-medium text-white disabled:cursor-wait disabled:opacity-60"
+                disabled={isUploadingPlaceImage}
+              >
+                {isUploadingPlaceImage ? '儲存中…' : '儲存'}
+              </button>
             </div>
           </div>
         </div>
