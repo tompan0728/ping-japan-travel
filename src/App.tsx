@@ -1464,13 +1464,13 @@ function App() {
           )}
 
           {activePage === 'info' && (
-            <div className="mb-4 flex flex-wrap gap-2 rounded-[24px] border border-[#c7dce8] bg-[#fbfdff] p-2 shadow-sm">
+            <div className="mb-4 flex min-w-0 gap-2 overflow-x-auto rounded-[24px] border border-[#c7dce8] bg-[#fbfdff] p-2 shadow-sm">
               {(['旅遊資訊', '景點', '美食', '購物'] as const).map((category) => (
                 <button
                   key={category}
                   type="button"
                   onClick={() => setInfoCategory(category)}
-                  className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+                  className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition ${
                     infoCategory === category
                       ? 'bg-[#176fa5] text-white'
                       : 'bg-[#edf5f8] text-[#3e586d] hover:bg-[#e5f3f9]'
