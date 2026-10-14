@@ -1276,7 +1276,7 @@ function App() {
                         <div className="text-base font-semibold text-[#173b59]">{item.title}</div>
                         <span className="rounded-full bg-[#e8f4fa] px-2 py-1 text-[10px] font-medium text-[#15577f]">{item.badge}</span>
                       </div>
-                      <p className="mt-3 text-sm text-[#3e586d]">{item.content}</p>
+                      <p className="mt-3 whitespace-pre-wrap break-words text-sm text-[#3e586d]">{item.content}</p>
                       {canEdit && (
                         <div className="mt-3 flex gap-2">
                           <button type="button" onClick={() => setTravelInfoDraft(item)} className="rounded-full bg-[#eaf5fb] px-3 py-1.5 text-xs font-medium text-[#15577f]">編輯</button>
