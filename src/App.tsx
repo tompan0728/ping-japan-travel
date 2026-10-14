@@ -24,6 +24,7 @@ import {
   MapPin,
   NotebookPen,
   Plane,
+  Pencil,
   Plus,
   RefreshCcw,
   RefreshCw,
@@ -1134,10 +1135,10 @@ function App() {
                   onClick={() => void refreshTravelData()}
                   disabled={isRefreshing}
                   aria-label="重新整理雲端資料"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[#c7dce8] bg-white px-3 py-1.5 text-xs font-medium text-[#15577f] transition hover:bg-[#eaf5fb] disabled:cursor-wait disabled:opacity-60"
+                  title={isRefreshing ? '正在更新資料' : '重新整理雲端資料'}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#c7dce8] bg-white text-[#15577f] transition hover:bg-[#eaf5fb] disabled:cursor-wait disabled:opacity-60"
                 >
                   <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
-                  {isRefreshing ? '更新中' : '重新整理'}
                 </button>
               </div>
             </div>
@@ -1157,7 +1158,7 @@ function App() {
                         }}
                         className="inline-flex items-center gap-2 rounded-full border border-[#c7dce8] bg-white/60 px-3 py-1.5 text-xs font-medium text-[#28475d]"
                       >
-                        <Sparkles size={14} />
+                        <Pencil size={14} />
                         直接修改
                       </button>
                       <button
@@ -1427,7 +1428,7 @@ function App() {
                               className="rounded-full bg-[#eaf5fb] p-2 text-[#15577f]"
                               aria-label="編輯行程"
                             >
-                              <Sparkles size={14} />
+                              <Pencil size={14} />
                             </button>
                             <button
                               type="button"
