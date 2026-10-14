@@ -1444,7 +1444,7 @@ function App() {
 
                       {expandedItemId === item.id && (
                         <div className="mt-3 rounded-2xl bg-[#eef5f8] p-3 text-sm text-[#3e586d]">
-                          <div className="grid gap-2 sm:grid-cols-2">
+                          <div className="grid gap-2 whitespace-pre-wrap break-words sm:grid-cols-2">
                             <div><span className="font-medium text-[#284b63]">地址：</span>{item.address}</div>
                             <div><span className="font-medium text-[#284b63]">交通：</span>{item.transport}</div>
                             <div><span className="font-medium text-[#284b63]">備註：</span>{item.notes}</div>
@@ -1688,7 +1688,7 @@ function App() {
                                 <div>預算：{formatYen(item.budget)}</div>
                                 <div>實際：{formatYen(item.actualPrice)}</div>
                                 <div>店家：{item.preferredStore}</div>
-                                <div>備註：{item.notes || '待補充'}</div>
+                                <div className="whitespace-pre-wrap break-words">備註：{item.notes || '待補充'}</div>
                               </div>
                               {canEdit && (
                                 <div className="mt-3 flex gap-2">
@@ -1792,7 +1792,7 @@ function App() {
                               </div>
 
                               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                                <div className="min-w-0 flex-1 text-sm text-[#3e586d]">{restaurant.notes}</div>
+                                <div className="min-w-0 flex-1 whitespace-pre-wrap break-words text-sm text-[#3e586d]">{restaurant.notes}</div>
                                 <div className="flex flex-wrap gap-2">
                                   {canEdit && (
                                     <button type="button" onClick={() => setAppData((previous) => ({ ...previous, restaurants: previous.restaurants.map((entry) => entry.id === restaurant.id ? { ...entry, favorite: !entry.favorite } : entry) }))} className={`rounded-full px-2 py-1 text-[10px] font-medium ${restaurant.favorite ? 'bg-[#fff0d8] text-[#a6712a]' : 'bg-[#edf5f8] text-[#3e586d]'}`}>
@@ -2017,7 +2017,7 @@ function App() {
                         )}
                       </div>
                       <div className="mt-2 text-xs text-[#6f8798]">{note.createdAt}</div>
-                      <p className="mt-3 text-sm leading-7 text-[#3e586d]">{note.content}</p>
+                      <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-[#3e586d]">{note.content}</p>
                       {canEdit && (
                         <div className="mt-3 flex justify-end">
                           <button type="button" onClick={() => setAppData((previous) => ({ ...previous, notes: previous.notes.filter((entry) => entry.id !== note.id) }))} className="rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
