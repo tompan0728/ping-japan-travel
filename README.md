@@ -26,6 +26,14 @@ VITE_SUPABASE_ANON_KEY=...
 
 Anyone can read the travel data. Users listed in `app_admins` can sign in, edit, and save it.
 
+While the page is visible, guests check for updated travel data once per minute. The refresh
+button in the sync bar can also fetch the latest version immediately. The app uses polling
+rather than Supabase Realtime, so no additional database publication setup is required.
+
+Admins can reorder itinerary items and the travel information, restaurant, and shopping lists
+with the drag handles; changes use the existing automatic save flow. Travel information entries
+expand when selected, and restaurant map links search by the restaurant name and location.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

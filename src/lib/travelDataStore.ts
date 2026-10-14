@@ -17,24 +17,43 @@ export const loadTravelData = async () => {
   const client = requireSupabase()
   const { data, error } = await client
     .from(TRAVEL_DOCUMENTS_TABLE)
-    .select('data')
+    .select('data, updated_at')
     .eq('id', TRAVEL_DOCUMENT_ID)
     .maybeSingle()
 
   if (error) throw error
 
-  return (data?.data as TravelAppData | null) ?? null
+  return {
+    data: (data?.data as TravelAppData | null) ?? null,
+    updatedAt: data?.updated_at ?? null,
+  }
+}
+
+export const getTravelDataUpdatedAt = async () => {
+  const client = requireSupabase()
+  const { data, error } = await client
+    .from(TRAVEL_DOCUMENTS_TABLE)
+    .select('updated_at')
+    .eq('id', TRAVEL_DOCUMENT_ID)
+    .maybeSingle()
+
+  if (error) throw error
+
+  return data?.updated_at ?? null
 }
 
 export const saveTravelData = async (travelData: TravelAppData) => {
   const client = requireSupabase()
+  const updatedAt = new Date().toISOString()
   const { error } = await client.from(TRAVEL_DOCUMENTS_TABLE).upsert({
     id: TRAVEL_DOCUMENT_ID,
     data: travelData,
-    updated_at: new Date().toISOString(),
+    updated_at: updatedAt,
   })
 
   if (error) throw error
+
+  return updatedAt
 }
 
 export const checkIsAdmin = async (userId: string) => {
@@ -52,4 +71,3 @@ export const checkIsAdmin = async (userId: string) => {
 
   return Boolean(data)
 }
-

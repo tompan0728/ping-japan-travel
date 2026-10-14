@@ -10,6 +10,8 @@ export interface TripInfo {
   travelers: number
   hotelName: string
   hotelAddress: string
+  secondHotelName?: string
+  secondHotelAddress?: string
 }
 
 export interface ItineraryItem {

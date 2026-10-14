@@ -1,7 +1,16 @@
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import {
-  ArrowDown,
-  ArrowUp,
+  closestCenter,
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import {
   CalendarDays,
   Check,
   ChevronRight,
@@ -15,6 +24,7 @@ import {
   Plane,
   Plus,
   RefreshCcw,
+  RefreshCw,
   Settings,
   Search,
   ShieldCheck,
@@ -42,7 +52,13 @@ import { tripSample } from './data/trip'
 import { travelInfoSample } from './data/travelInfo'
 import { LoginPage } from './components/LoginPage'
 import { isSupabaseConfigured, supabase } from './lib/supabase'
-import { checkIsAdmin, loadTravelData, saveTravelData } from './lib/travelDataStore'
+import {
+  checkIsAdmin,
+  getTravelDataUpdatedAt,
+  loadTravelData,
+  saveTravelData,
+} from './lib/travelDataStore'
+import { SortableItem } from './components/SortableItem'
 
 const STORAGE_KEY = 'tokyo-trip-app-v2'
 const LEGACY_STORAGE_KEY = 'tokyo-trip-app-v1'
@@ -80,6 +96,13 @@ const createId = () =>
 const formatYen = (value: number) => `¥${value.toLocaleString('ja-JP')}`
 const googleMapsLink = (value: string) =>
   `https://maps.google.com/?q=${encodeURIComponent(value)}`
+const restaurantMapsLink = (restaurant: Restaurant) => {
+  const query = [restaurant.name, restaurant.area, restaurant.address, '日本']
+    .filter(Boolean)
+    .join(' ')
+
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}
 
 const emptyItineraryItem = (): ItineraryItem => ({
   id: createId(),
@@ -135,6 +158,25 @@ const emptyNote = (): NoteItem => ({
   createdAt: new Date().toISOString().slice(0, 10),
 })
 
+const reorderVisibleItems = <T extends { id: string },>(
+  items: T[],
+  visibleItems: T[],
+  activeId: string,
+  overId: string,
+) => {
+  const oldIndex = visibleItems.findIndex((item) => item.id === activeId)
+  const newIndex = visibleItems.findIndex((item) => item.id === overId)
+  if (oldIndex < 0 || newIndex < 0) return items
+
+  const reorderedVisibleItems = arrayMove(visibleItems, oldIndex, newIndex)
+  const visibleIds = new Set(visibleItems.map((item) => item.id))
+  let visibleIndex = 0
+
+  return items.map((item) =>
+    visibleIds.has(item.id) ? reorderedVisibleItems[visibleIndex++] : item,
+  )
+}
+
 function App() {
   const [appData, setAppData] = useState<TravelAppData>(() => {
     if (typeof window === 'undefined') return buildSampleData()
@@ -172,7 +214,22 @@ function App() {
   const [syncMessage, setSyncMessage] = useState(
     isSupabaseConfigured ? '準備連線到雲端資料庫' : '本機模式',
   )
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const skipNextRemoteSave = useRef(false)
+  const appDataRef = useRef(appData)
+  const lastSyncedDataRef = useRef<TravelAppData | null>(null)
+  const lastRemoteUpdatedAtRef = useRef<string | null>(null)
+  const lastRefreshAtRef = useRef(0)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  )
+
+  useEffect(() => {
+    appDataRef.current = appData
+  }, [appData])
 
   const canEdit = isSupabaseConfigured ? isRemoteAdmin : ownerAccess === 'owner'
 
@@ -232,15 +289,18 @@ function App() {
       loadTravelData(),
       session ? checkIsAdmin(session.user.id) : Promise.resolve(false),
     ])
-      .then(([remoteData, isAdmin]) => {
+      .then(([snapshot, isAdmin]) => {
         if (!isMounted) return
 
         setIsRemoteAdmin(isAdmin)
         if (isAdmin) setShowOwnerGate(false)
 
-        if (remoteData) {
+        lastRemoteUpdatedAtRef.current = snapshot.updatedAt
+        lastSyncedDataRef.current = snapshot.data ?? appDataRef.current
+
+        if (snapshot.data) {
           skipNextRemoteSave.current = true
-          setAppData(remoteData)
+          setAppData(snapshot.data)
           setSyncMessage(session ? '已載入雲端資料' : '已載入公開行程')
           return
         }
@@ -256,7 +316,10 @@ function App() {
         setSyncMessage(`雲端讀取失敗：${error.message}`)
       })
       .finally(() => {
-        if (isMounted) setIsDataLoading(false)
+        if (isMounted) {
+          lastRefreshAtRef.current = Date.now()
+          setIsDataLoading(false)
+        }
       })
 
     return () => {
@@ -318,6 +381,7 @@ function App() {
   const [activePage, setActivePage] = useState<PageKey>('home')
   const [selectedDayIndex, setSelectedDayIndex] = useState(0)
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null)
+  const [expandedTravelInfoId, setExpandedTravelInfoId] = useState<string | null>(null)
   const [infoCategory, setInfoCategory] = useState<'旅遊資訊' | '美食' | '購物'>('旅遊資訊')
   const [shoppingStatusFilter, setShoppingStatusFilter] = useState<'全部' | '待購買' | '已購買'>('全部')
   const [shoppingRegionFilter, setShoppingRegionFilter] = useState('全部')
@@ -330,6 +394,10 @@ function App() {
   const [restaurantDraft, setRestaurantDraft] = useState<Restaurant | null>(null)
   const [travelInfoDraft, setTravelInfoDraft] = useState<TravelInfoItem | null>(null)
   const [noteDraft, setNoteDraft] = useState<NoteItem | null>(null)
+  const refreshLockRef = useRef(false)
+  const refreshTravelDataRef = useRef<(manual?: boolean) => Promise<void>>(async () => {})
+  const remoteSavePendingRef = useRef(false)
+  const remoteSaveRevisionRef = useRef(0)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -343,10 +411,19 @@ function App() {
       return
     }
 
+    const saveRevision = ++remoteSaveRevisionRef.current
+    remoteSavePendingRef.current = true
+    let saveStarted = false
     const saveTimer = window.setTimeout(() => {
+      saveStarted = true
       setSyncMessage('正在儲存到雲端')
       saveTravelData(appData)
-        .then(() => {
+        .then((updatedAt) => {
+          if (remoteSaveRevisionRef.current !== saveRevision) return
+
+          lastSyncedDataRef.current = appData
+          lastRemoteUpdatedAtRef.current = updatedAt
+          remoteSavePendingRef.current = false
           const savedAt = new Date().toLocaleTimeString('zh-TW', {
             hour: '2-digit',
             minute: '2-digit',
@@ -354,12 +431,106 @@ function App() {
           setSyncMessage(`雲端已儲存 ${savedAt}`)
         })
         .catch((error: Error) => {
+          if (remoteSaveRevisionRef.current !== saveRevision) return
+
+          remoteSavePendingRef.current = false
           setSyncMessage(`雲端儲存失敗：${error.message}`)
         })
     }, 700)
 
-    return () => window.clearTimeout(saveTimer)
+    return () => {
+      window.clearTimeout(saveTimer)
+      if (!saveStarted) remoteSavePendingRef.current = false
+    }
   }, [appData, canEdit, isDataLoading, session])
+
+  const refreshTravelData = useCallback(async (manual = true) => {
+    if (!supabase || refreshLockRef.current) return
+
+    const hasUnsavedChanges =
+      canEdit &&
+      (remoteSavePendingRef.current ||
+        (lastSyncedDataRef.current !== null &&
+          JSON.stringify(appDataRef.current) !== JSON.stringify(lastSyncedDataRef.current)))
+
+    if (hasUnsavedChanges) {
+      if (manual) setSyncMessage('有尚未儲存的管理者修改，已略過重新整理')
+      return
+    }
+
+    refreshLockRef.current = true
+    setIsRefreshing(true)
+    if (manual) setSyncMessage('正在重新整理資料')
+
+    try {
+      const updatedAt = await getTravelDataUpdatedAt()
+      lastRefreshAtRef.current = Date.now()
+
+      if (updatedAt === null) {
+        lastRemoteUpdatedAtRef.current = null
+        if (manual) setSyncMessage('雲端尚未建立資料')
+        return
+      }
+
+      if (updatedAt === lastRemoteUpdatedAtRef.current) {
+        if (manual) setSyncMessage('資料已是最新')
+        return
+      }
+
+      const snapshot = await loadTravelData()
+      const changedWhileLoading =
+        canEdit &&
+        (remoteSavePendingRef.current ||
+          (lastSyncedDataRef.current !== null &&
+            JSON.stringify(appDataRef.current) !== JSON.stringify(lastSyncedDataRef.current)))
+
+      if (changedWhileLoading) {
+        if (manual) setSyncMessage('重新整理期間有新的管理者修改，已保留本機內容')
+        return
+      }
+
+      lastRemoteUpdatedAtRef.current = snapshot.updatedAt ?? updatedAt
+      if (!snapshot.data) {
+        setSyncMessage('雲端尚未建立資料')
+        return
+      }
+
+      lastSyncedDataRef.current = snapshot.data
+      skipNextRemoteSave.current = true
+      setAppData(snapshot.data)
+      setSyncMessage(manual ? '已更新雲端資料' : '已同步最新資料')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      setSyncMessage(`雲端讀取失敗：${message}`)
+    } finally {
+      refreshLockRef.current = false
+      setIsRefreshing(false)
+    }
+  }, [canEdit])
+  useEffect(() => {
+    refreshTravelDataRef.current = refreshTravelData
+  }, [refreshTravelData])
+
+  useEffect(() => {
+    if (!supabase || isAuthLoading || isDataLoading || canEdit) return
+
+    const checkForUpdates = () => {
+      if (
+        document.visibilityState === 'visible' &&
+        Date.now() - lastRefreshAtRef.current >= 60_000
+      ) {
+        void refreshTravelDataRef.current(false)
+      }
+    }
+
+    const intervalId = window.setInterval(checkForUpdates, 60_000)
+    document.addEventListener('visibilitychange', checkForUpdates)
+
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', checkForUpdates)
+    }
+  }, [canEdit, isAuthLoading, isDataLoading])
 
   const selectedDay =
     appData.itineraryDays[selectedDayIndex] ?? appData.itineraryDays[0]
@@ -385,6 +556,16 @@ function App() {
     })
   }, [appData.restaurants, restaurantFilter, restaurantSearch])
 
+  const filteredShoppingItems = useMemo(
+    () =>
+      appData.shoppingItems.filter(
+        (item) =>
+          (shoppingStatusFilter === '全部' || item.status === shoppingStatusFilter) &&
+          (shoppingRegionFilter === '全部' || item.area === shoppingRegionFilter),
+      ),
+    [appData.shoppingItems, shoppingRegionFilter, shoppingStatusFilter],
+  )
+
   const saveTripInfo = () => {
     if (!canEdit) {
       setShowOwnerGate(true)
@@ -403,17 +584,6 @@ function App() {
       },
     }))
     setIsTripEditorOpen(false)
-  }
-
-  const restoreSampleData = () => {
-    if (!canEdit) {
-      setShowOwnerGate(true)
-      return
-    }
-
-    setAppData(buildSampleData())
-    setSelectedDayIndex(0)
-    setExpandedItemId(null)
   }
 
   const exportData = () => {
@@ -526,29 +696,61 @@ function App() {
     }))
   }
 
-  const moveItineraryItem = (id: string, direction: 'up' | 'down') => {
-    if (!canEdit) {
-      setShowOwnerGate(true)
-      return
-    }
+  const reorderItineraryItems = ({ active, over }: DragEndEvent) => {
+    if (!canEdit || !over || active.id === over.id) return
 
     setAppData((previous) => ({
       ...previous,
       itineraryDays: previous.itineraryDays.map((day, index) => {
         if (index !== selectedDayIndex) return day
 
-        const indexToMove = day.items.findIndex((item) => item.id === id)
-        if (indexToMove < 0) return day
-
-        const nextIndex = direction === 'up' ? indexToMove - 1 : indexToMove + 1
-        if (nextIndex < 0 || nextIndex >= day.items.length) return day
-
-        const updatedItems = [...day.items]
-        const [movedItem] = updatedItems.splice(indexToMove, 1)
-        updatedItems.splice(nextIndex, 0, movedItem)
-
-        return { ...day, items: updatedItems }
+        const oldIndex = day.items.findIndex((item) => item.id === active.id)
+        const newIndex = day.items.findIndex((item) => item.id === over.id)
+        return oldIndex < 0 || newIndex < 0
+          ? day
+          : { ...day, items: arrayMove(day.items, oldIndex, newIndex) }
       }),
+    }))
+  }
+
+  const reorderTravelInfo = ({ active, over }: DragEndEvent) => {
+    if (!canEdit || !over || active.id === over.id) return
+
+    setAppData((previous) => {
+      const oldIndex = previous.travelInfo.findIndex((item) => item.id === active.id)
+      const newIndex = previous.travelInfo.findIndex((item) => item.id === over.id)
+
+      return oldIndex < 0 || newIndex < 0
+        ? previous
+        : { ...previous, travelInfo: arrayMove(previous.travelInfo, oldIndex, newIndex) }
+    })
+  }
+
+  const reorderShoppingItems = ({ active, over }: DragEndEvent) => {
+    if (!canEdit || !over || active.id === over.id) return
+
+    setAppData((previous) => ({
+      ...previous,
+      shoppingItems: reorderVisibleItems(
+        previous.shoppingItems,
+        filteredShoppingItems,
+        String(active.id),
+        String(over.id),
+      ),
+    }))
+  }
+
+  const reorderRestaurants = ({ active, over }: DragEndEvent) => {
+    if (!canEdit || !over || active.id === over.id) return
+
+    setAppData((previous) => ({
+      ...previous,
+      restaurants: reorderVisibleItems(
+        previous.restaurants,
+        filteredRestaurants,
+        String(active.id),
+        String(over.id),
+      ),
     }))
   }
 
@@ -739,9 +941,21 @@ function App() {
                 <Database size={17} className="shrink-0 text-[#176fa5]" />
                 <span className="truncate">{syncMessage}</span>
               </div>
-              <div className="flex items-center gap-2 rounded-full bg-[#edf5f8] px-3 py-1 text-xs font-medium text-[#5b7182]">
-                <ShieldCheck size={14} />
-                {canEdit ? '管理者可編輯' : '觀看者唯讀'}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 rounded-full bg-[#edf5f8] px-3 py-1 text-xs font-medium text-[#5b7182]">
+                  <ShieldCheck size={14} />
+                  {canEdit ? '管理者可編輯' : '觀看者唯讀'}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void refreshTravelData()}
+                  disabled={isRefreshing}
+                  aria-label="重新整理雲端資料"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#c7dce8] bg-white px-3 py-1.5 text-xs font-medium text-[#15577f] transition hover:bg-[#eaf5fb] disabled:cursor-wait disabled:opacity-60"
+                >
+                  <RefreshCw size={14} className={isRefreshing ? 'animate-spin' : ''} />
+                  {isRefreshing ? '更新中' : '重新整理'}
+                </button>
               </div>
             </div>
           )}
@@ -750,10 +964,6 @@ function App() {
             <div className="space-y-4">
               <section className="rounded-[30px] bg-[linear-gradient(120deg,#fff0f5_0%,#ffe0df_48%,#ffd59a_100%)] p-5 shadow-[0_18px_35px_rgba(28,74,105,0.10)] sm:p-6">
                 <div className="mb-4 flex items-center justify-between gap-2">
-                  <div className="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 py-1 text-xs font-medium text-[#e78331]">
-                    <Sparkles size={14} className="mr-1" />
-                    {appData.trip.tripName}
-                  </div>
                   {canEdit && (
                     <div className="flex flex-wrap items-center gap-2">
                       <button
@@ -766,14 +976,6 @@ function App() {
                       >
                         <Sparkles size={14} />
                         直接修改
-                      </button>
-                      <button
-                        type="button"
-                        onClick={restoreSampleData}
-                        className="inline-flex items-center gap-2 rounded-full border border-[#c7dce8] bg-white/60 px-3 py-1.5 text-xs font-medium text-[#28475d]"
-                      >
-                        <RefreshCcw size={14} />
-                        還原範例資料
                       </button>
                       <button
                         type="button"
@@ -814,15 +1016,29 @@ function App() {
                       <div className="text-xs font-medium uppercase tracking-[0.12em] text-[#668093]">入住資訊</div>
                       <Hotel size={18} className="text-[#176fa5]" />
                     </div>
-                    <div className="mt-4 space-y-3 text-sm text-[#284b63]">
-                      <div>
-                        <div className="text-[11px] uppercase tracking-[0.08em] text-[#6f8798]">飯店</div>
-                        <div className="mt-1 font-semibold text-[#173b59]">{appData.trip.hotelName}</div>
-                      </div>
-                      <div>
-                        <div className="text-[11px] uppercase tracking-[0.08em] text-[#6f8798]">地址</div>
-                        <div className="mt-1">{appData.trip.hotelAddress}</div>
-                      </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                      {[
+                        {
+                          label: '富士山',
+                          name: appData.trip.hotelName,
+                          address: appData.trip.hotelAddress,
+                        },
+                        {
+                          label: '東京',
+                          name: appData.trip.secondHotelName,
+                          address: appData.trip.secondHotelAddress,
+                        },
+                      ].map((hotel) => (
+                        <div key={hotel.label} className="min-w-0 rounded-2xl border border-[#dceaf1] bg-white p-3">
+                          <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#6f8798]">{hotel.label}</div>
+                          <div className="mt-1 break-words font-semibold text-[#173b59]">
+                            {hotel.name?.trim() || '尚未填寫飯店名稱'}
+                          </div>
+                          <div className="mt-1 break-words text-xs text-[#60798b]">
+                            {hotel.address?.trim() || '尚未填寫地址'}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -973,16 +1189,26 @@ function App() {
                   ))}
                 </div>
 
-                <div className="space-y-3">
-                  {selectedDay.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`rounded-[24px] border p-3 shadow-sm transition ${
-                        expandedItemId === item.id
-                          ? 'border-[#c8dfec] bg-[#f4f9fc]'
-                          : 'border-[#dceaf1] bg-white'
-                      }`}
-                    >
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={reorderItineraryItems}
+                >
+                  <SortableContext
+                    items={selectedDay.items.map((item) => item.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {selectedDay.items.map((item) => (
+                        <SortableItem key={item.id} id={item.id} disabled={!canEdit}>
+                          {(dragHandle) => (
+                            <div
+                              className={`rounded-[24px] border p-3 shadow-sm transition ${
+                                expandedItemId === item.id
+                                  ? 'border-[#c8dfec] bg-[#f4f9fc]'
+                                  : 'border-[#dceaf1] bg-white'
+                              }`}
+                            >
                       <div className="flex items-start justify-between gap-3">
                         <button
                           type="button"
@@ -1007,9 +1233,8 @@ function App() {
                         </button>
 
                         {canEdit && (
-                          <div className="flex items-center gap-2">
-                            <button type="button" onClick={() => moveItineraryItem(item.id, 'up')} className="rounded-full border border-[#c7dce8] p-2 text-[#3e586d]" aria-label="上移"><ArrowUp size={14} /></button>
-                            <button type="button" onClick={() => moveItineraryItem(item.id, 'down')} className="rounded-full border border-[#c7dce8] p-2 text-[#3e586d]" aria-label="下移"><ArrowDown size={14} /></button>
+                          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                            {dragHandle}
                             <button
                               type="button"
                               onClick={() => {
@@ -1043,9 +1268,13 @@ function App() {
                           </div>
                         </div>
                       )}
+                            </div>
+                          )}
+                        </SortableItem>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </section>
             </div>
           )}
@@ -1118,43 +1347,56 @@ function App() {
                   </select>
                 </div>
 
-                <div className="space-y-3">
-                  {appData.shoppingItems
-                    .filter((item) =>
-                      (shoppingStatusFilter === '全部' || item.status === shoppingStatusFilter) &&
-                      (shoppingRegionFilter === '全部' || item.area === shoppingRegionFilter),
-                    )
-                    .map((item) => (
-                      <div key={item.id} className="rounded-[24px] border border-[#dceaf1] bg-white p-3 shadow-sm">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="text-base font-semibold text-[#173b59]">{item.name}</div>
-                            <div className="mt-1 text-xs text-[#60798b]">{item.brand} · {item.area}</div>
-                          </div>
-                          <div className={`rounded-full px-2 py-1 text-[10px] font-medium ${
-                            item.status === '已購買'
-                              ? 'bg-[#eaf7ee] text-[#3a8f5d]'
-                              : 'bg-[#e8f4fa] text-[#15577f]'
-                          }`}>
-                            {item.status}
-                          </div>
-                        </div>
-                        <div className="mt-3 grid gap-2 text-sm text-[#284b63] sm:grid-cols-2">
-                          <div>預算：{formatYen(item.budget)}</div>
-                          <div>實際：{formatYen(item.actualPrice)}</div>
-                          <div>店家：{item.preferredStore}</div>
-                          <div>備註：{item.notes || '待補充'}</div>
-                        </div>
-                        {canEdit && (
-                          <div className="mt-3 flex gap-2">
-                            <button type="button" onClick={() => setShoppingDraft(item)} className="rounded-full bg-[#eaf5fb] px-3 py-1.5 text-xs font-medium text-[#15577f]">編輯</button>
-                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, shoppingItems: previous.shoppingItems.filter((entry) => entry.id !== item.id) }))} className="rounded-full border border-[#c8dfec] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
-                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, shoppingItems: previous.shoppingItems.map((entry) => entry.id === item.id ? { ...entry, status: entry.status === '已購買' ? '待購買' : '已購買' } : entry) }))} className="rounded-full bg-[#f2f8f3] px-3 py-1.5 text-xs font-medium text-[#3d8d57]">{item.status === '已購買' ? '改為未購買' : '已購買'}</button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={reorderShoppingItems}
+                >
+                  <SortableContext
+                    items={filteredShoppingItems.map((item) => item.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {filteredShoppingItems.map((item) => (
+                        <SortableItem key={item.id} id={item.id} disabled={!canEdit}>
+                          {(dragHandle) => (
+                            <div className="rounded-[24px] border border-[#dceaf1] bg-white p-3 shadow-sm">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-base font-semibold text-[#173b59]">{item.name}</div>
+                                  <div className="mt-1 text-xs text-[#60798b]">{item.brand} · {item.area}</div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {dragHandle}
+                                  <div className={`rounded-full px-2 py-1 text-[10px] font-medium ${
+                                    item.status === '已購買'
+                                      ? 'bg-[#eaf7ee] text-[#3a8f5d]'
+                                      : 'bg-[#e8f4fa] text-[#15577f]'
+                                  }`}>
+                                    {item.status}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-3 grid gap-2 text-sm text-[#284b63] sm:grid-cols-2">
+                                <div>預算：{formatYen(item.budget)}</div>
+                                <div>實際：{formatYen(item.actualPrice)}</div>
+                                <div>店家：{item.preferredStore}</div>
+                                <div>備註：{item.notes || '待補充'}</div>
+                              </div>
+                              {canEdit && (
+                                <div className="mt-3 flex gap-2">
+                                  <button type="button" onClick={() => setShoppingDraft(item)} className="rounded-full bg-[#eaf5fb] px-3 py-1.5 text-xs font-medium text-[#15577f]">編輯</button>
+                                  <button type="button" onClick={() => setAppData((previous) => ({ ...previous, shoppingItems: previous.shoppingItems.filter((entry) => entry.id !== item.id) }))} className="rounded-full border border-[#c8dfec] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
+                                  <button type="button" onClick={() => setAppData((previous) => ({ ...previous, shoppingItems: previous.shoppingItems.map((entry) => entry.id === item.id ? { ...entry, status: entry.status === '已購買' ? '待購買' : '已購買' } : entry) }))} className="rounded-full bg-[#f2f8f3] px-3 py-1.5 text-xs font-medium text-[#3d8d57]">{item.status === '已購買' ? '改為未購買' : '已購買'}</button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </SortableItem>
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </section>
             </div>
           )}
@@ -1202,49 +1444,67 @@ function App() {
                   </select>
                 </div>
 
-                <div className="space-y-3">
-                  {filteredRestaurants.map((restaurant) => (
-                    <div key={restaurant.id} className="rounded-[24px] border border-[#dceaf1] bg-white p-3 shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-base font-semibold text-[#173b59]">{restaurant.name}</div>
-                          <div className="mt-1 text-xs text-[#60798b]">{restaurant.type} · {restaurant.area}</div>
-                        </div>
-                        {canEdit && (
-                          <button
-                            type="button"
-                            onClick={() => setRestaurantDraft(restaurant)}
-                            className="rounded-full bg-[#eaf5fb] px-2 py-1 text-[10px] font-medium text-[#15577f]"
-                          >
-                            編輯
-                          </button>
-                        )}
-                      </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={reorderRestaurants}
+                >
+                  <SortableContext
+                    items={filteredRestaurants.map((restaurant) => restaurant.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {filteredRestaurants.map((restaurant) => (
+                        <SortableItem key={restaurant.id} id={restaurant.id} disabled={!canEdit}>
+                          {(dragHandle) => (
+                            <div className="rounded-[24px] border border-[#dceaf1] bg-white p-3 shadow-sm">
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-base font-semibold text-[#173b59]">{restaurant.name}</div>
+                                  <div className="mt-1 text-xs text-[#60798b]">{restaurant.type} · {restaurant.area}</div>
+                                </div>
+                                {canEdit && (
+                                  <div className="flex items-center gap-2">
+                                    {dragHandle}
+                                    <button
+                                      type="button"
+                                      onClick={() => setRestaurantDraft(restaurant)}
+                                      className="rounded-full bg-[#eaf5fb] px-2 py-1 text-[10px] font-medium text-[#15577f]"
+                                    >
+                                      編輯
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
 
-                      <div className="mt-3 grid gap-2 text-sm text-[#284b63] sm:grid-cols-2">
-                        <div>地址：{restaurant.address}</div>
-                        <div>預算：{restaurant.budget}</div>
-                        <div>營業時間：{restaurant.hours}</div>
-                        <div>需要預約：{restaurant.reservation}</div>
-                      </div>
+                              <div className="mt-3 grid gap-2 text-sm text-[#284b63] sm:grid-cols-2">
+                                <div>地址：{restaurant.address}</div>
+                                <div>預算：{restaurant.budget}</div>
+                                <div>營業時間：{restaurant.hours}</div>
+                                <div>需要預約：{restaurant.reservation}</div>
+                              </div>
 
-                      <div className="mt-3 flex items-center justify-between gap-2">
-                        <div className="text-sm text-[#3e586d]">{restaurant.notes}</div>
-                        <div className="flex gap-2">
-                          {canEdit && (
-                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, restaurants: previous.restaurants.map((entry) => entry.id === restaurant.id ? { ...entry, favorite: !entry.favorite } : entry) }))} className={`rounded-full px-2 py-1 text-[10px] font-medium ${restaurant.favorite ? 'bg-[#fff0d8] text-[#a6712a]' : 'bg-[#edf5f8] text-[#3e586d]'}`}>
-                              {restaurant.favorite ? '已收藏' : '收藏'}
-                            </button>
+                              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                                <div className="min-w-0 flex-1 text-sm text-[#3e586d]">{restaurant.notes}</div>
+                                <div className="flex flex-wrap gap-2">
+                                  {canEdit && (
+                                    <button type="button" onClick={() => setAppData((previous) => ({ ...previous, restaurants: previous.restaurants.map((entry) => entry.id === restaurant.id ? { ...entry, favorite: !entry.favorite } : entry) }))} className={`rounded-full px-2 py-1 text-[10px] font-medium ${restaurant.favorite ? 'bg-[#fff0d8] text-[#a6712a]' : 'bg-[#edf5f8] text-[#3e586d]'}`}>
+                                      {restaurant.favorite ? '已收藏' : '收藏'}
+                                    </button>
+                                  )}
+                                  <a href={restaurantMapsLink(restaurant)} target="_blank" rel="noreferrer" className="rounded-full bg-[#176fa5] px-3 py-1.5 text-xs font-medium text-white">Google Maps</a>
+                                  {canEdit && (
+                                    <button type="button" onClick={() => setAppData((previous) => ({ ...previous, restaurants: previous.restaurants.filter((entry) => entry.id !== restaurant.id) }))} className="rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
                           )}
-                          <a href={restaurant.link || googleMapsLink(restaurant.address)} target="_blank" rel="noreferrer" className="rounded-full bg-[#176fa5] px-3 py-1.5 text-xs font-medium text-white">Google Maps</a>
-                          {canEdit && (
-                            <button type="button" onClick={() => setAppData((previous) => ({ ...previous, restaurants: previous.restaurants.filter((entry) => entry.id !== restaurant.id) }))} className="rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
-                          )}
-                        </div>
-                      </div>
+                        </SortableItem>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </section>
             </div>
           )}
@@ -1269,23 +1529,90 @@ function App() {
                   )}
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {appData.travelInfo.map((item) => (
-                    <div key={item.id} className="rounded-[24px] border border-[#dceaf1] bg-white p-4 shadow-sm">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="text-base font-semibold text-[#173b59]">{item.title}</div>
-                        <span className="rounded-full bg-[#e8f4fa] px-2 py-1 text-[10px] font-medium text-[#15577f]">{item.badge}</span>
-                      </div>
-                      <p className="mt-3 whitespace-pre-wrap break-words text-sm text-[#3e586d]">{item.content}</p>
-                      {canEdit && (
-                        <div className="mt-3 flex gap-2">
-                          <button type="button" onClick={() => setTravelInfoDraft(item)} className="rounded-full bg-[#eaf5fb] px-3 py-1.5 text-xs font-medium text-[#15577f]">編輯</button>
-                          <button type="button" onClick={() => setAppData((previous) => ({ ...previous, travelInfo: previous.travelInfo.filter((entry) => entry.id !== item.id) }))} className="rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs font-medium text-[#3e586d]">刪除</button>
-                        </div>
-                      )}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={reorderTravelInfo}
+                >
+                  <SortableContext
+                    items={appData.travelInfo.map((item) => item.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {appData.travelInfo.map((item) => (
+                        <SortableItem key={item.id} id={item.id} disabled={!canEdit}>
+                          {(dragHandle) => (
+                            <div className="rounded-[24px] border border-[#dceaf1] bg-white p-4 shadow-sm">
+                              <div className="flex items-center gap-2">
+                                {dragHandle}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setExpandedTravelInfoId(
+                                      expandedTravelInfoId === item.id ? null : item.id,
+                                    )
+                                  }
+                                  aria-expanded={expandedTravelInfoId === item.id}
+                                  className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"
+                                >
+                                  <span className="flex min-w-0 items-center gap-2">
+                                    <ChevronRight
+                                      size={16}
+                                      className={`shrink-0 text-[#60798b] transition-transform ${
+                                        expandedTravelInfoId === item.id ? 'rotate-90' : ''
+                                      }`}
+                                    />
+                                    <span className="truncate text-base font-semibold text-[#173b59]">
+                                      {item.title}
+                                    </span>
+                                  </span>
+                                  <span className="shrink-0 rounded-full bg-[#e8f4fa] px-2 py-1 text-[10px] font-medium text-[#15577f]">
+                                    {item.badge}
+                                  </span>
+                                </button>
+                              </div>
+                              {expandedTravelInfoId === item.id && (
+                                <div className="mt-3 border-t border-[#dceaf1] pt-3">
+                                  <p className="whitespace-pre-wrap break-words text-sm leading-6 text-[#3e586d]">
+                                    {item.content}
+                                  </p>
+                                  {canEdit && (
+                                    <div className="mt-3 flex gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => setTravelInfoDraft(item)}
+                                        className="rounded-full bg-[#eaf5fb] px-3 py-1.5 text-xs font-medium text-[#15577f]"
+                                      >
+                                        編輯
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setAppData((previous) => ({
+                                            ...previous,
+                                            travelInfo: previous.travelInfo.filter(
+                                              (entry) => entry.id !== item.id,
+                                            ),
+                                          }))
+                                          if (expandedTravelInfoId === item.id) {
+                                            setExpandedTravelInfoId(null)
+                                          }
+                                        }}
+                                        className="rounded-full border border-[#c7dce8] px-3 py-1.5 text-xs font-medium text-[#3e586d]"
+                                      >
+                                        刪除
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </SortableItem>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </SortableContext>
+                </DndContext>
               </section>
             </div>
           )}
@@ -1468,8 +1795,10 @@ function App() {
               <input value={tripDraft.travelDates} onChange={(event) => setTripDraft({ ...tripDraft, travelDates: event.target.value })} placeholder="旅行日期" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
               <input type="number" value={tripDraft.durationDays} onChange={(event) => setTripDraft({ ...tripDraft, durationDays: Number(event.target.value) || 1 })} placeholder="天數" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
               <input type="number" value={tripDraft.travelers} onChange={(event) => setTripDraft({ ...tripDraft, travelers: Number(event.target.value) || 1 })} placeholder="旅伴人數" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
-              <input value={tripDraft.hotelName} onChange={(event) => setTripDraft({ ...tripDraft, hotelName: event.target.value })} placeholder="飯店名稱" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
-              <input value={tripDraft.hotelAddress} onChange={(event) => setTripDraft({ ...tripDraft, hotelAddress: event.target.value })} placeholder="飯店地址" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={tripDraft.hotelName} onChange={(event) => setTripDraft({ ...tripDraft, hotelName: event.target.value })} placeholder="第一間飯店名稱" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={tripDraft.hotelAddress} onChange={(event) => setTripDraft({ ...tripDraft, hotelAddress: event.target.value })} placeholder="第一間飯店地址" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={tripDraft.secondHotelName ?? ''} onChange={(event) => setTripDraft({ ...tripDraft, secondHotelName: event.target.value })} placeholder="第二間飯店名稱" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
+              <input value={tripDraft.secondHotelAddress ?? ''} onChange={(event) => setTripDraft({ ...tripDraft, secondHotelAddress: event.target.value })} placeholder="第二間飯店地址" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={() => setIsTripEditorOpen(false)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>
