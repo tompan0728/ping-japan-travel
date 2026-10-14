@@ -68,3 +68,8 @@ select {
   background: rgba(89, 143, 174, 0.48);
   border-radius: 999px;
 }
+/*保留使用者輸入換行*/
+.preserve-line-breaks{
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
