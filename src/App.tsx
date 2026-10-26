@@ -153,6 +153,7 @@ const emptyItineraryItem = (): ItineraryItem => ({
   notes: '',
   link: '',
   completed: false,
+  nearbyFoodTags: [],
 })
 
 const emptyShoppingItem = (): ShoppingItem => ({
@@ -439,6 +440,7 @@ function App() {
   const [isTripEditorOpen, setIsTripEditorOpen] = useState(false)
   const [tripDraft, setTripDraft] = useState(appData.trip)
   const [itineraryDraft, setItineraryDraft] = useState<ItineraryItem | null>(null)
+  const [itineraryFoodTagsInput, setItineraryFoodTagsInput] = useState('')
   const [shoppingDraft, setShoppingDraft] = useState<ShoppingItem | null>(null)
   const [restaurantDraft, setRestaurantDraft] = useState<Restaurant | null>(null)
   const [placeDraft, setPlaceDraft] = useState<Place | null>(null)
@@ -706,6 +708,14 @@ function App() {
       address: itineraryDraft.address || '待填寫',
       notes: itineraryDraft.notes || '待補充說明',
       link: itineraryDraft.link || googleMapsLink(itineraryDraft.address || itineraryDraft.title),
+      nearbyFoodTags: Array.from(
+        new Set(
+          itineraryFoodTagsInput
+            .split(/[\n,，、]+/)
+            .map((tag) => tag.trim().replace(/^#+/, '').trim())
+            .filter(Boolean),
+        ),
+      ),
     }
 
     setAppData((previous) => ({
@@ -726,6 +736,13 @@ function App() {
     }))
 
     setItineraryDraft(null)
+    setItineraryFoodTagsInput('')
+  }
+
+  const openItineraryEditor = (item: ItineraryItem) => {
+    setItineraryDraft(item)
+    setItineraryFoodTagsInput((item.nearbyFoodTags ?? []).join('\n'))
+    setExpandedItemId(item.id)
   }
 
   const removeItineraryItem = (id: string) => {
@@ -1347,6 +1364,7 @@ function App() {
                           ...emptyItineraryItem(),
                           id: createId(),
                         })
+                        setItineraryFoodTagsInput('')
                       }}
                       className="inline-flex items-center gap-2 rounded-full bg-[#176fa5] px-3 py-2 text-sm font-medium text-white"
                     >
@@ -1387,7 +1405,7 @@ function App() {
                         <SortableItem key={item.id} id={item.id} disabled={!canEdit}>
                           {(dragHandle) => (
                             <div
-                              className={`rounded-[24px] border p-3 shadow-sm transition ${
+                              className={`rounded-[24px] border p-4 shadow-sm transition sm:p-5 ${
                                 expandedItemId === item.id
                                   ? 'border-[#c8dfec] bg-[#f4f9fc]'
                                   : 'border-[#dceaf1] bg-white'
@@ -1397,7 +1415,7 @@ function App() {
                         <button
                           type="button"
                           onClick={() => setExpandedItemId(expandedItemId === item.id ? null : item.id)}
-                          className="flex flex-1 items-start gap-3 text-left"
+                          className="flex min-w-0 flex-1 items-start gap-3 text-left"
                         >
                           {canEdit && (
                             <input
@@ -1409,8 +1427,8 @@ function App() {
                             />
                           )}
                           <div>
-                            <div className="text-sm font-semibold text-[#173b59]">{item.title}</div>
-                            <div className="mt-1 text-xs text-[#60798b]">
+                            <div className="break-words text-base font-semibold text-[#173b59] sm:text-lg">{item.title}</div>
+                            <div className="mt-1 text-sm text-[#60798b]">
                               {item.startTime} · {item.category} · {item.duration}
                             </div>
                           </div>
@@ -1421,10 +1439,7 @@ function App() {
                             {dragHandle}
                             <button
                               type="button"
-                              onClick={() => {
-                                setItineraryDraft(item)
-                                setExpandedItemId(item.id)
-                              }}
+                              onClick={() => openItineraryEditor(item)}
                               className="rounded-full bg-[#eaf5fb] p-2 text-[#15577f]"
                               aria-label="編輯行程"
                             >
@@ -1442,6 +1457,21 @@ function App() {
                         )}
                       </div>
 
+                      {expandedItemId !== item.id && (item.nearbyFoodTags ?? []).length > 0 && (
+                        <div className="mt-4 rounded-2xl border border-[#f2ddd7] bg-[#fff8f5] p-2">
+                          <div className="flex flex-wrap gap-2">
+                            {item.nearbyFoodTags?.map((tag, index) => (
+                              <span
+                                key={`${item.id}-food-${index}`}
+                                className="rounded-full border border-[#f0d5cc] bg-white px-3 py-1.5 text-sm font-medium text-[#9b5b50]"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {expandedItemId === item.id && (
                         <div className="mt-3 rounded-2xl bg-[#eef5f8] p-3 text-sm text-[#3e586d]">
                           <div className="grid gap-2 whitespace-pre-wrap break-words sm:grid-cols-2">
@@ -1449,6 +1479,21 @@ function App() {
                             <div><span className="font-medium text-[#284b63]">交通：</span>{item.transport}</div>
                             <div><span className="font-medium text-[#284b63]">備註：</span>{item.notes}</div>
                             <div><span className="font-medium text-[#284b63]">導航：</span><a href={item.link || googleMapsLink(item.address)} target="_blank" rel="noreferrer" className="text-[#15577f] underline">Google Maps</a></div>
+                          </div>
+                        </div>
+                      )}
+
+                      {expandedItemId === item.id && (item.nearbyFoodTags ?? []).length > 0 && (
+                        <div className="mt-3 rounded-2xl border border-[#f2ddd7] bg-[#fff8f5] p-2">
+                          <div className="flex flex-wrap gap-2">
+                            {item.nearbyFoodTags?.map((tag, index) => (
+                              <span
+                                key={`${item.id}-food-${index}`}
+                                className="rounded-full border border-[#f0d5cc] bg-white px-3 py-1.5 text-sm font-medium text-[#9b5b50]"
+                              >
+                                {tag}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       )}
@@ -2117,7 +2162,7 @@ function App() {
 
       {itineraryDraft && (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-900/30 p-4 sm:items-center">
-          <div className="w-full max-w-xl rounded-[30px] bg-white p-4 shadow-2xl">
+          <div className="my-auto max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-[30px] bg-white p-4 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <div className="text-xl font-semibold text-[#173b59]">{itineraryDraft.id ? '編輯行程' : '新增行程'}</div>
               <button type="button" onClick={() => setItineraryDraft(null)} className="rounded-full bg-[#f0f6f9] p-2 text-[#3e586d]"><X size={16} /></button>
@@ -2130,6 +2175,17 @@ function App() {
               <input value={itineraryDraft.transport} onChange={(event) => setItineraryDraft({ ...itineraryDraft, transport: event.target.value })} placeholder="交通方式" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none" />
               <input value={itineraryDraft.address} onChange={(event) => setItineraryDraft({ ...itineraryDraft, address: event.target.value })} placeholder="地址" className="h-11 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] px-3 text-sm outline-none sm:col-span-2" />
               <textarea value={itineraryDraft.notes} onChange={(event) => setItineraryDraft({ ...itineraryDraft, notes: event.target.value })} placeholder="備註" className="min-h-24 rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] p-3 text-sm outline-none sm:col-span-2" />
+              <div className="sm:col-span-2">
+                <label htmlFor="itinerary-nearby-food" className="text-sm font-medium text-[#284b63]">附近美食標籤</label>
+                <textarea
+                  id="itinerary-nearby-food"
+                  value={itineraryFoodTagsInput}
+                  onChange={(event) => setItineraryFoodTagsInput(event.target.value)}
+                  placeholder={'每行輸入一項，例如：\n淺草拉麵\n天婦羅老店'}
+                  className="mt-1 min-h-24 w-full rounded-xl border border-[#cbdfe9] bg-[#f4f9fc] p-3 text-sm outline-none"
+                />
+                <p className="mt-1 text-xs text-[#71899a]">可用換行或逗號分隔，儲存後會以 #標籤 顯示在行程卡片下方。</p>
+              </div>
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={() => setItineraryDraft(null)} className="rounded-full border border-[#c7dce8] px-4 py-2 text-sm font-medium text-[#3e586d]">取消</button>

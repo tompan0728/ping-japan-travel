@@ -25,6 +25,7 @@ export interface ItineraryItem {
   notes: string
   link: string
   completed: boolean
+  nearbyFoodTags?: string[]
 }
 
 export interface ItineraryDay {
